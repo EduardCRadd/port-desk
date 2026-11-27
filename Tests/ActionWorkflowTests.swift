@@ -65,16 +65,16 @@ private actor Fixture {
     let selected = server(123, ports: [3000])
     let fixture = Fixture([[selected], []], launchError: DeskError("Terminal unavailable"))
     let result = await fixture.workflow.perform(.restart, on: selected, command: "server")
-    #expect(result == .failed("Terminal unavailable"))
+    #expect(result == .failed("Selected server stopped. Terminal unavailable"))
     #expect(await fixture.commands == ["server"])
 }
 
 @Test func restartReportsPartialReturn() async {
     let selected = server(123, ports: [3000, 3001])
     let replacement = server(124, ports: [3001])
-    let fixture = Fixture([[selected], [], [replacement]])
+    let fixture = Fixture([[selected], [], [], [replacement]])
     let result = await fixture.workflow.perform(.restart, on: selected, command: "server")
-    #expect(result == .restarted(returned: [3001], missing: [3000]))
+    #expect(result == .restarted(returned: replacement.endpoints, missing: selected.endpoints.subtracting(replacement.endpoints)))
 }
 
 @Test func stopListsSurvivingPeersOnceSelectedServerLeaves() async {
@@ -97,4 +97,103 @@ private actor Fixture {
     let result = await fixture.workflow.perform(.stop, on: selected)
     guard case .failed = result else { Issue.record("Accepted a changed endpoint"); return }
     #expect(await fixture.signals.isEmpty)
+}
+
+private let bindCommand = "python3 -m http.server 3000 --bind 127.0.0.1"
+
+private func ipv6Peer() -> Listener {
+    var peer = server(456, ports: [])
+    peer.endpoints = [Endpoint("[::1]:3000", family: "IPv6")!]
+    return peer
+}
+
+@Test(arguments: [
+    "python3 -m http.server 3000",
+    "python3 -m http.server 3000 --bind 0.0.0.0",
+    "python3 -m http.server 3000 --bind ::1",
+    "python3 -m http.server 3001 --bind 127.0.0.1",
+    bindCommand + " --bind ::1",
+    bindCommand + "; echo next",
+    bindCommand + " $(hostname)",
+    "node demo.js --port 3000 --host 127.0.0.1",
+    "/tmp/custom/python3 -m http.server 3000 --bind 127.0.0.1",
+])
+func unprovenEditedCommandLeavesSharedListenerRunning(_ command: String) async {
+    let selected = server(123, ports: [3000])
+    let fixture = Fixture([[selected, ipv6Peer()]])
+    let result = await fixture.workflow.perform(.restart, on: selected, command: command)
+    #expect(result.summary.contains("before Stop"))
+    #expect(await fixture.signals.isEmpty)
+    #expect(await fixture.commands.isEmpty)
+}
+
+@Test(arguments: ["*:3000", "[::]:3000", "[::ffff:127.0.0.1]:3000"])
+func unknownSocketOverlapLeavesSelectedListenerRunning(_ address: String) async {
+    let selected = server(123, ports: [3000])
+    var peer = ipv6Peer()
+    peer.endpoints = [Endpoint(address, family: "IPv6")!]
+    let fixture = Fixture([[selected, peer]])
+    _ = await fixture.workflow.perform(.restart, on: selected, command: bindCommand)
+    #expect(await fixture.signals.isEmpty)
+}
+
+@Test func newPortOwnerBetweenChecksPreventsLaunch() async {
+    let selected = server(123, ports: [3000]), peer = ipv6Peer()
+    let claimant = server(999, ports: [3000])
+    let fixture = Fixture([[selected, peer], [peer], [peer, claimant]])
+    let result = await fixture.workflow.perform(.restart, on: selected, command: bindCommand)
+    #expect(result.summary.contains("Selected server stopped. Restart blocked"))
+    #expect(await fixture.signals == [123])
+    #expect(await fixture.commands.isEmpty)
+}
+
+@Test(arguments: [false, true]) func onlySelectedEndpointCanReturn(replacementStarted: Bool) async {
+    let selected = server(123, ports: [3000]), peer = ipv6Peer()
+    let final = replacementStarted ? [peer, server(999, ports: [3000])] : [peer]
+    let fixture = Fixture([[selected, peer], [peer], [peer], final])
+    let result = await fixture.workflow.perform(.restart, on: selected, command: bindCommand)
+    #expect(result == .restarted(returned: replacementStarted ? selected.endpoints : [],
+                                 missing: replacementStarted ? [] : selected.endpoints))
+    #expect(await fixture.signals == [123])
+    #expect(await fixture.commands == [bindCommand])
+}
+
+@Test func changedDirectoryBeforeRestartSendsNoSignal() async {
+    let selected = server(123, ports: [3000])
+    var changed = selected
+    changed.directory = "/tmp/another-project"
+    let fixture = Fixture([[changed]])
+    _ = await fixture.workflow.perform(.restart, on: selected, command: bindCommand)
+    #expect(await fixture.signals.isEmpty)
+}
+
+@Test func absoluteFrameworkLauncherUsesSamePythonRuntime() {
+    let version = "/Library/Frameworks/Python.framework/Versions/3.15"
+    var selected = server(123, ports: [3000])
+    selected.executable = version + "/Resources/Python.app/Contents/MacOS/Python"
+    #expect(RestartBinding.matches(version + "/bin/python3.15 -m http.server 3000 --bind 127.0.0.1", selected: selected))
+    #expect(RestartBinding.matches("'" + selected.executable! + "' -m http.server 3000 --bind 127.0.0.1", selected: selected))
+}
+
+@Test func changedNextDevScriptAfterStopBlocksLaunch() async throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let manifest = directory.appendingPathComponent("package.json")
+    try Data(#"{"scripts":{"dev":"next dev"}}"#.utf8).write(to: manifest)
+    var selected = server(123, ports: [3000])
+    selected.name = "next-server"
+    selected.directory = directory.path
+    let peer = ipv6Peer()
+    let fixture = Fixture([[selected, peer], [peer], [peer]])
+    var workflow = fixture.workflow
+    workflow.signal = { row in
+        do { try Data(#"{"scripts":{"dev":"node custom.js"}}"#.utf8).write(to: manifest) }
+        catch { return .failed(error.localizedDescription) }
+        return await fixture.signal(row)
+    }
+    let result = await workflow.perform(.restart, on: selected, command: "npm run dev -- --port 3000 --hostname 127.0.0.1")
+    #expect(result.summary.contains("Selected server stopped. Restart blocked"))
+    #expect(await fixture.signals == [123])
+    #expect(await fixture.commands.isEmpty)
 }

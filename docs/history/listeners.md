@@ -6,6 +6,10 @@ Read this before touching: [Listeners and commands](../listeners.md), [action wo
 
 Keywords: listener, SIGTERM, process identity, restart, Terminal, Swift Testing
 
+## 2026-11-27 — Restart an explicit shared address
+
+The old return check could count an IPv6 peer in the same folder as a successful IPv4 restart. Restart now checks the edited command, original endpoints and peer identities, verifies ownership again before launch, and records which exact endpoints returned. Controlled tests cover ambiguous edits, wildcard peers, a claimant between checks and the surviving-peer case. Socket binding remains subject to changes after the last scan.
+
 ## 2026-11-27 — Distinguish a stopped process from a vacant port
 
 Stop used to report failure if a second listener kept serving on the same port number. It now identifies the selected process by PID and start time and reports the surviving endpoints and PIDs. The pre-signal check compares reviewed endpoints to catch address changes on the same port number. Controlled tests exercise both cases.
