@@ -13,6 +13,7 @@
 		FF14E4DFA2C71F5DC04130A6 /* ListenerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */; };
 		48D8516E35D193B5AA6F106D /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
 		5841591EBFA3798F241450F8 /* Check.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E34961E63777D064B012FC9 /* Check.swift */; };
+		FA1200000000000000000001 /* SharedPortChecks.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1200000000000000000002 /* SharedPortChecks.swift */; };
 		109099083F1D24028A8675D6 /* ListenerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */; };
 		BAFD7B33D929459713F2205C /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
 		E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AA3726A5ACD7267478071 /* PortDesk.swift */; };
@@ -33,6 +34,7 @@
 		58CD9BFDFAE3C7D4E6B3FB34 /* PortDesk.icon */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.iconcomposer.icon; path = PortDesk.icon; sourceTree = "<group>"; };
 		6A68043E5338058C0BD72409 /* Port Desk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Port Desk.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E34961E63777D064B012FC9 /* Check.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Check.swift; sourceTree = "<group>"; };
+		FA1200000000000000000002 /* SharedPortChecks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SharedPortChecks.swift; sourceTree = "<group>"; };
 		F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListenerDiscovery.swift; sourceTree = "<group>"; };
 		9475BD1994D464F98F9C9529 /* Ports.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Ports.swift; sourceTree = "<group>"; };
 		A99AA3726A5ACD7267478071 /* PortDesk.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortDesk.swift; sourceTree = "<group>"; };
@@ -67,6 +69,7 @@
 			children = (
 				E7338010FD4664CF14F02E3D /* ActionWorkflowTests.swift */,
 				6E34961E63777D064B012FC9 /* Check.swift */,
+				FA1200000000000000000002 /* SharedPortChecks.swift */,
 			);
 			name = Tests;
 			path = Tests;
@@ -235,6 +238,7 @@
 				FF14E4DFA2C71F5DC04130A6 /* ListenerDiscovery.swift in Sources */,
 				48D8516E35D193B5AA6F106D /* Ports.swift in Sources */,
 				5841591EBFA3798F241450F8 /* Check.swift in Sources */,
+				FA1200000000000000000001 /* SharedPortChecks.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
