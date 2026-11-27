@@ -1,0 +1,36 @@
+{
+  "fill": {
+    "solid": "srgb:0.13,0.13,0.13,1.00"
+  },
+  "groups": [
+    {
+      "layers": [
+        {
+          "image-name": "Monitor.png",
+          "name": "Monitor face",
+          "glass": false,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "lighting": "individual",
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
+      },
+      "specular": false,
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": "shared"
+  }
+}
