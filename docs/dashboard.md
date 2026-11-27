@@ -35,3 +35,9 @@ Confirmation starts a separate action task. It continues through release checks,
 5. Check panel contrast in the Reduce Transparency appearance. In a VoiceOver session, check row labels, the start-command field, cancellation and whether the final result is spoken once. Quit after all actions finish.
 
 See the [dashboard history](history/dashboard.md) for dated verification and its limits.
+
+## Reference layout
+
+At 2× scale the supplied two-server panel measures about 470 points wide. The header and footer are about 32 and 30 points high, each compact row is 49 points high, and disclosure adds about 125 points. The port column begins 12 points from the edge and the title begins 74 points from it. The settings window measures about 420 × 448 points. Compare panel bounds without the desktop background or window shadow.
+
+PortRow projects listener snapshots into ascending port order. A process owning multiple ports appears on multiple rows and remains one action target. Rows sharing a port preserve their separate process identities.

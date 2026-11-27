@@ -197,3 +197,13 @@ func unknownSocketOverlapLeavesSelectedListenerRunning(_ address: String) async 
     #expect(await fixture.signals == [123])
     #expect(await fixture.commands.isEmpty)
 }
+
+@Test func portRowsKeepFullProcessIdentity() {
+    let first = server(20, ports: [3000, 3001])
+    let second = server(21, ports: [3000])
+    let rows = PortRow.list([second, first], showAll: false)
+    #expect(rows.map(\.endpoint.port) == [3000, 3000, 3001])
+    #expect(Set(rows.map(\.id)).count == 3)
+    #expect(Set(rows.map(\.listener.id)).count == 2)
+    #expect(rows.first?.listener.ports == [3000, 3001])
+}
