@@ -72,6 +72,12 @@ struct Endpoint: Hashable {
         address = String(name[..<colon]).trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
     }
 
+    var displayAddress: String {
+        if address == "*" { return "*:\(port) (\(family))" }
+        let host = address.contains(":") ? "[\(address)]" : address
+        return "\(host):\(port)"
+    }
+
     var browserHost: String {
         switch address {
         case "*": return family == "IPv6" ? "::1" : "127.0.0.1"

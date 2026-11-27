@@ -16,7 +16,7 @@ Preview links use one endpoint per port. An unshared wildcard uses `localhost`. 
 
 ## Stop and restart
 
-A confirmation captures a listener snapshot. The dashboard submits the reviewed command and snapshot to `ActionWorkflow.perform`, records its progress, and displays its outcome. On execution, the workflow rechecks the current user, PID fingerprint and complete port set, records the attempted signal, then sends SIGTERM. Release checks detect a supervisor or other replacement that claims an old port. A rejected stale selection can be retried from a refreshed row.
+A confirmation captures a listener snapshot. The dashboard submits the reviewed command and snapshot to `ActionWorkflow.perform`, records its progress, and displays its outcome. On execution, the workflow rechecks the current user, PID fingerprint and complete set of addresses and ports, records the attempted signal, then sends SIGTERM. Stop succeeds once the selected server no longer listens on its reviewed ports. The result lists every remaining listener on those ports by address and PID, including a replacement or a peer using another address family. A rejected stale selection can be retried from a refreshed row.
 
 Restart waits for release, then uses a temporary user-executable command file to launch Terminal. The file removes itself when run. A fresh interactive login shell changes into the original working directory and executes the reviewed command. Suggestions cover a Next.js dev script with supported flags, simple Node entry scripts and Python HTTP servers. For a custom launch, enter the full command and required settings. A replacement launched in Terminal continues in its own session.
 

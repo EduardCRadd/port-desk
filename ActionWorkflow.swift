@@ -6,16 +6,24 @@ enum Action: String {
     case restart = "Restart"
 }
 
+struct RemainingListener: Equatable {
+    let id: Int32
+    let endpoint: Endpoint
+}
+
 enum ActionOutcome: Equatable {
-    case stopped(ports: Set<Int>)
+    case stopped(remaining: [RemainingListener])
     case restarted(returned: Set<Int>, missing: Set<Int>)
     case failed(String)
 
     var summary: String {
         func list(_ ports: Set<Int>) -> String { ports.sorted().map(String.init).joined(separator: ", ") }
         switch self {
-        case .stopped(let ports):
-            return "Port \(list(ports)) released."
+        case .stopped(let remaining):
+            let stopped = "Selected server stopped listening."
+            guard !remaining.isEmpty else { return stopped }
+            let peers = remaining.map { "\($0.endpoint.displayAddress) (PID \($0.id))" }
+            return stopped + " Still listening: " + peers.joined(separator: ", ") + "."
         case let .restarted(returned, missing):
             var lines: [String] = []
             if !returned.isEmpty { lines.append("Listening on \(list(returned)).") }
@@ -57,7 +65,7 @@ struct ActionWorkflow: Sendable {
         do {
             guard selected.manageable, let directory = selected.directory,
                   let current = try await listeners().first(where: { $0.id == selected.id }),
-                  current.manageable, current.fingerprint == selected.fingerprint, current.ports == selected.ports else {
+                  current.manageable, current.fingerprint == selected.fingerprint, current.endpoints == selected.endpoints else {
                 return .failed(stale)
             }
 
@@ -66,10 +74,13 @@ struct ActionWorkflow: Sendable {
             await record("$ kill -TERM \(selected.id)")
             if case .failed(let error) = attempt { return .failed(error) }
 
-            try await waitForRelease(of: selected)
-            let stopped = ActionOutcome.stopped(ports: selected.ports)
+            let remaining = try await waitForStop(of: selected)
+            let stopped = ActionOutcome.stopped(remaining: remaining)
             guard action == .restart else { return stopped }
             await record(stopped.summary)
+            guard remaining.isEmpty else {
+                return .failed("Restart blocked. Another listener owns a selected port.")
+            }
             await record("$ cd -- " + quote(directory) + " && " + command)
             try await launch(directory, command)
             return try await observeRestart(of: selected)
@@ -78,16 +89,23 @@ struct ActionWorkflow: Sendable {
         }
     }
 
-    private func waitForRelease(of selected: Listener) async throws {
+    private func waitForStop(of selected: Listener) async throws -> [RemainingListener] {
         for attempt in 1...30 {
             let overlapping = try await listeners().filter { !$0.ports.isDisjoint(with: selected.ports) }
-            if overlapping.isEmpty { return }
-            guard overlapping.contains(where: { $0.id == selected.id && $0.fingerprint == selected.fingerprint }) else {
-                throw DeskError("Another listener owns a selected port. Check the refreshed list.")
+            let stillListening = overlapping.contains { row in
+                row.id == selected.id && (row.fingerprint == nil || row.fingerprint == selected.fingerprint)
+            }
+            if !stillListening {
+                return overlapping.flatMap { row in
+                    row.endpoints.filter { selected.ports.contains($0.port) }
+                        .map { RemainingListener(id: row.id, endpoint: $0) }
+                }.sorted {
+                    ($0.endpoint.port, $0.endpoint.displayAddress, $0.id) < ($1.endpoint.port, $1.endpoint.displayAddress, $1.id)
+                }
             }
             if attempt < 30 { try await sleep(.milliseconds(200)) }
         }
-        throw DeskError("The port is still in use after SIGTERM. Check the server’s terminal.")
+        throw DeskError("The selected server is still listening after SIGTERM. Check its terminal.")
     }
 
     private func observeRestart(of selected: Listener) async throws -> ActionOutcome {

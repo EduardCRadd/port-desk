@@ -76,3 +76,25 @@ private actor Fixture {
     let result = await fixture.workflow.perform(.restart, on: selected, command: "server")
     #expect(result == .restarted(returned: [3001], missing: [3000]))
 }
+
+@Test func stopListsSurvivingPeersOnceSelectedServerLeaves() async {
+    let selected = server(123, ports: [3000])
+    var peer = server(124, ports: [])
+    let endpoint = Endpoint("[::1]:3000", family: "IPv6")!
+    peer.endpoints = [endpoint, Endpoint("[::1]:3001", family: "IPv6")!]
+    let fixture = Fixture([[selected, peer], [selected, peer], [peer]])
+    let result = await fixture.workflow.perform(.stop, on: selected)
+    #expect(result == .stopped(remaining: [.init(id: peer.id, endpoint: endpoint)]))
+    #expect(result.summary.contains("[::1]:3000 (PID 124)"))
+    #expect(await fixture.signals == [123])
+}
+
+@Test func reassignedAddressOnSamePortRejectsStop() async {
+    let selected = server(123, ports: [3000])
+    var changed = selected
+    changed.endpoints = [Endpoint("[::1]:3000", family: "IPv6")!]
+    let fixture = Fixture([[changed]])
+    let result = await fixture.workflow.perform(.stop, on: selected)
+    guard case .failed = result else { Issue.record("Accepted a changed endpoint"); return }
+    #expect(await fixture.signals.isEmpty)
+}
