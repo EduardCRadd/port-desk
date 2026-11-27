@@ -21,6 +21,9 @@ xcodebuild -project 'Port Desk.xcodeproj' -scheme "$scheme" \
 
 products="$work_dir/Build/Products/$configuration"
 if [ "$scheme" = 'Listener Checks' ]; then
+    xcodebuild -project 'Port Desk.xcodeproj' -scheme "$scheme" \
+        -configuration "$configuration" -destination "platform=macOS,arch=$(uname -m)" \
+        -derivedDataPath "$work_dir" -parallel-testing-enabled NO -quiet test
     "$products/Listener Checks"
 else
     # Mirror the complete signed product, removing stale resources on rebuilds.

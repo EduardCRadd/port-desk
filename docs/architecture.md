@@ -10,7 +10,7 @@ Keywords: architecture, Swift 6, macOS 14, SwiftUI, AppKit, build, signing, icon
 
 Port Desk is a native macOS utility. `PortDeskApp` owns the session’s single `Desk` and presents the dashboard in a SwiftUI `MenuBarExtra` with the window style. SwiftUI owns presentation, while AppKit supplies the frosted backdrop, panel visibility notifications and clipboard. [Dashboard](dashboard.md) covers its controls and state. [Listeners and commands](listeners.md) covers the Darwin process APIs, local TCP discovery, validation and Terminal integration.
 
-The [Xcode project](../Port%20Desk.xcodeproj/project.pbxproj) owns the sources, build settings and packaging for both shared schemes. **Port Desk** builds the app from `PortDesk.swift` and `Ports.swift`. **Listener Checks** builds a command-line executable from `Tests/Check.swift` and the same `Ports.swift`. Each target has one `@main` entry point.
+The [Xcode project](../Port%20Desk.xcodeproj/project.pbxproj) owns the sources, build settings and packaging for both shared schemes. The app and the Listener Checks executable share discovery, [the action workflow](../ActionWorkflow.swift), and [the Terminal launcher](../TerminalLauncher.swift). Each executable has one `@main` entry point. The **Action Tests** bundle exercises the same sources with controlled observations, signals, timing, and launches. Press ⌘U in either shared scheme to run its Swift Testing cases.
 
 The app target generates the bundle metadata, including `LSUIElement` for menu-bar-only launch, and signs locally. Xcode compiles the [Icon Composer asset](../Assets/PortDesk.icon/icon.json) into the catalog and fallback ICNS. The [PNG artwork](../Assets/PortDesk.png) remains available for reuse.
 
@@ -35,7 +35,7 @@ codesign --verify --strict 'Port Desk.app'
 ./build.sh --check
 ```
 
-The [script](../build.sh) builds the shared schemes with temporary Derived Data. Its default action copies the signed Release bundle into the checkout. Run it in a temporary checkout to verify without overwriting a running app bundle. The listener check uses a disposable loopback HTTP server and signals its own fixture. Its assertions cover parsing, URL selection, quoting, discovery, a stale selection, graceful stop and port release. For interaction and accessibility, use the [dashboard checks](dashboard.md#manual-checks).
+The [script](../build.sh) builds the shared schemes with temporary Derived Data. Its default action copies the signed Release bundle into the checkout. Run it in a temporary checkout to verify without overwriting a running app bundle. With `--check`, the script runs the Swift Testing bundle and the Listener Checks executable. The listener check uses a disposable loopback HTTP server and signals its own fixture. Its assertions cover parsing, URL selection, quoting, discovery, a stale selection, graceful stop and port release. For interaction and accessibility, use the [dashboard checks](dashboard.md#manual-checks).
 
 The listener check launches `python3 -m http.server` through `PATH`. To verify your development interpreter, run `python3 --version` and `./build.sh --check` from the same terminal. Python 3.15.2 has been verified. When launched from Finder, Xcode uses its own environment and may select a different Python. The app itself has no Python dependency.
 

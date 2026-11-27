@@ -4,3 +4,4 @@
 | --- | --- | --- |
 | Contributor tools | [Project tooling](project-tooling.md) | [Architecture and local build](../architecture.md) |
 | Menu bar dashboard | [Dashboard history](dashboard.md) | [Dashboard and interaction](../dashboard.md) |
+| Listener discovery and actions | [Listener history](listeners.md) | [Listeners and commands](../listeners.md) |

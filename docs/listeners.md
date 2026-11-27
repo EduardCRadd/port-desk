@@ -2,7 +2,7 @@
 
 Purpose: Explain how Port Desk identifies a listener, constructs its preview URL and verifies a stop or restart.
 
-Read this before touching: [Listener model and scanner](../Ports.swift), [action coordinator and Terminal launcher](../PortDesk.swift), [automated checks](../Tests/Check.swift).
+Read this before touching: [Listener model and scanner](../Ports.swift), [action workflow](../ActionWorkflow.swift), [Terminal launcher](../TerminalLauncher.swift), [automated checks](../Tests/Check.swift).
 
 Keywords: lsof, PID, IPv4, IPv6, localhost, HTTPS, SIGTERM, restart, Terminal
 
@@ -14,7 +14,7 @@ Preview links use one endpoint per port. An unshared wildcard uses `localhost`. 
 
 ## Stop and restart
 
-A confirmation captures a listener snapshot. On execution, `stop` rechecks the current user, PID fingerprint and complete port set, records the attempted signal, then sends SIGTERM. Release checks detect a supervisor or other replacement that claims an old port. A rejected stale selection can be retried from a refreshed row.
+A confirmation captures a listener snapshot. The dashboard submits the reviewed command and snapshot to `ActionWorkflow.perform`, records its progress, and displays its outcome. On execution, the workflow rechecks the current user, PID fingerprint and complete port set, records the attempted signal, then sends SIGTERM. Release checks detect a supervisor or other replacement that claims an old port. A rejected stale selection can be retried from a refreshed row.
 
 Restart waits for release, then uses a temporary user-executable command file to launch Terminal. The file removes itself when run. A fresh interactive login shell changes into the original working directory and executes the reviewed command. Suggestions cover a Next.js dev script with supported flags, simple Node entry scripts and Python HTTP servers. For a custom launch, enter the full command and required settings. A replacement launched in Terminal continues in its own session.
 
@@ -22,4 +22,6 @@ Port Desk checks every original port for a listener with the same user and worki
 
 ## Verification
 
-The [build guide](architecture.md#build-and-check) runs the scanner and stop fixture. To exercise restart, use a disposable server in a distinct working folder, review its shell command and confirm the original port returns there. For a multi-port server, check the partial-return case as well as full recovery. Inspect the browser response separately using its port link.
+The [build guide](architecture.md#build-and-check) runs [controlled Swift Testing cases](../Tests/ActionWorkflowTests.swift) and the scanner and stop fixture. To exercise restart, use a disposable server in a distinct working folder, review its shell command and confirm the original port returns there. For a multi-port server, check the partial-return case as well as full recovery. Inspect the browser response separately using its port link.
+
+The [listener history](history/listeners.md) records changes to these checks and outcomes.

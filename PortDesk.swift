@@ -3,9 +3,7 @@ import SwiftUI
 
 private let terminalGreen = Color(.sRGB, red: 0, green: 1, blue: 0)
 
-enum Action: String {
-    case stop = "Stop", restart = "Restart"
-
+extension Action {
     var symbol: String { self == .stop ? "stop.fill" : "arrow.counterclockwise" }
 
     var color: Color {
@@ -41,31 +39,13 @@ struct Selection: Identifiable {
     let action: Action
 }
 
-func terminalLaunch(directory: String, command: String) throws {
-    guard FileManager.default.fileExists(atPath: directory) else { throw DeskError("The working folder no longer exists.") }
-    let script = FileManager.default.temporaryDirectory.appendingPathComponent("Port Desk \(UUID().uuidString).command")
-    let body = "#!/bin/zsh\n/bin/rm -f -- \"$0\"\nexec /bin/zsh -lic " + quote("cd -- " + quote(directory) + " && " + command) + "\n"
-    try Data(body.utf8).write(to: script, options: .withoutOverwriting)
-    do {
-        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
-        let open = Process()
-        open.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        open.arguments = ["-a", "Terminal", script.path]
-        try open.run()
-        open.waitUntilExit()
-        guard open.terminationStatus == 0 else { throw DeskError("Terminal could not open the restart command.") }
-    } catch {
-        try? FileManager.default.removeItem(at: script)
-        throw error
-    }
-}
-
 @MainActor final class Desk: ObservableObject {
     @Published var rows = [Listener]()
     @Published var scanError = ""
     @Published var busy = false
     @Published var loaded = false
     @Published var log = [String]()
+    @Published private(set) var lastOutcome: ActionOutcome?
     private var scanning = false
     private var pollTask: Task<Void, Never>?
 
@@ -106,39 +86,12 @@ func terminalLaunch(directory: String, command: String) throws {
         defer { busy = false }
         let row = selection.row
         append("\(Date.now.formatted(date: .omitted, time: .standard))  \(selection.action.rawValue) · \(row.project) · \(row.portText)")
-        do {
-            // Validate and signal together. Return the attempted command even if the signal fails.
-            let attempt = await Task.detached {
-                var issued: String?
-                do {
-                    try stop(row) { issued = $0 }
-                    return (issued, nil as String?)
-                } catch { return (issued, error.localizedDescription) }
-            }.value
-            if let issued = attempt.0 { append("$ " + issued) }
-            if let error = attempt.1 { throw DeskError(error) }
-            try await Task.detached { try waitForRelease(row) }.value
-            append("Port \(row.portText) released.")
-            if selection.action == .restart, let directory = row.directory {
-                append("$ cd -- " + quote(directory) + " && " + command)
-                try await Task.detached { try terminalLaunch(directory: directory, command: command) }.value
-                let returned = try await Task.detached {
-                    var found = Set<Int>()
-                    for attempt in 1...40 {
-                        let listeners = try scan().filter { $0.uid == row.uid && $0.directory == directory }
-                        found = row.ports.intersection(listeners.flatMap(\.ports))
-                        if found == row.ports || attempt == 40 { break }
-                        try await Task.sleep(for: .milliseconds(350))
-                    }
-                    return found
-                }.value
-                let missing = row.ports.subtracting(returned)
-                if !returned.isEmpty { append("Listening on " + returned.sorted().map(String.init).joined(separator: ", ") + ".") }
-                if !missing.isEmpty {
-                    append("Still missing in the original folder: " + missing.sorted().map(String.init).joined(separator: ", ") + ". Check Terminal.")
-                }
-            }
-        } catch { append("Couldn’t finish. " + error.localizedDescription) }
+        lastOutcome = nil
+        let outcome = await ActionWorkflow.live.perform(selection.action, on: row, command: command) { message in
+            await self.append(message)
+        }
+        lastOutcome = outcome
+        append(outcome.summary)
         await refresh()
     }
 }
