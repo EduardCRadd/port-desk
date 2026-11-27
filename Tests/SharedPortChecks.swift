@@ -1,10 +1,39 @@
 import Foundation
 
-/// Exercise two real listeners in the same working directory on different loopback addresses.
-func checkSharedPortActions() async throws {
+/// Keep Python's optional reverse DNS lookup off the critical path on hosted macOS runners.
+func makeHTTPFixtureDirectory() throws -> URL {
     let directory = URL(fileURLWithPath: "/private/tmp", isDirectory: true).appendingPathComponent(UUID().uuidString)
-    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    defer { try? FileManager.default.removeItem(at: directory) }
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false,
+                                            attributes: [.posixPermissions: 0o700])
+    let fixtureStartup = """
+        import socket
+
+        original_getfqdn = socket.getfqdn
+        def local_fixture_name(name=""):
+            if name in ("127.0.0.1", "::1"):
+                return "localhost"
+            return original_getfqdn(name)
+        socket.getfqdn = local_fixture_name
+        """
+    do {
+        try fixtureStartup.write(to: directory.appendingPathComponent("sitecustomize.py"), atomically: true, encoding: .utf8)
+    } catch {
+        try? FileManager.default.removeItem(at: directory)
+        throw error
+    }
+    return directory
+}
+
+func configureHTTPFixture(_ process: Process, in directory: URL) {
+    var environment = ProcessInfo.processInfo.environment
+    environment["PYTHONPATH"] = directory.path
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    process.environment = environment
+    process.currentDirectoryURL = directory
+}
+
+/// Exercise two real listeners in the same working directory on different loopback addresses.
+func checkSharedPortActions(in directory: URL) async throws {
     let token = UUID().uuidString
     try token.write(to: directory.appendingPathComponent("index.html"), atomically: true, encoding: .utf8)
 
@@ -30,36 +59,23 @@ func checkSharedPortActions() async throws {
 }
 
 /// An HTTP server owned by this check. Never signal a PID discovered by port alone.
-private func startHTTPServer(in directory: URL, host: String, port: Int) throws -> Process {
+func startHTTPServer(in directory: URL, host: String, port: Int) throws -> Process {
     let process = Process()
-    process.currentDirectoryURL = directory
+    configureHTTPFixture(process, in: directory)
     process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-    if host == "::1" {
-        // A numeric IPv6 peer has no reason to reverse-resolve its hostname before listening.
-        let serveIPv6 = """
-            import http.server, socket, socketserver, sys
-            class LoopbackServer(socketserver.TCPServer):
-                address_family = socket.AF_INET6
-            with LoopbackServer(("::1", int(sys.argv[1])), http.server.SimpleHTTPRequestHandler) as server:
-                print("IPv6 fixture listening on", server.server_address, file=sys.stderr, flush=True)
-                server.serve_forever()
-            """
-        process.arguments = ["python3", "-c", serveIPv6, String(port)]
-    } else {
-        process.arguments = ["python3", "-m", "http.server", String(port), "--bind", host]
-    }
+    process.arguments = ["python3", "-m", "http.server", String(port), "--bind", host]
     process.standardOutput = FileHandle.nullDevice
     process.standardError = FileHandle.standardError
     try process.run()
     return process
 }
 
-private func finish(_ process: Process) {
+func finish(_ process: Process) {
     if process.isRunning { process.terminate() }
     process.waitUntilExit()
 }
 
-private func findFixture(_ process: Process) throws -> Listener {
+func findFixture(_ process: Process) throws -> Listener {
     let deadline = ContinuousClock.now + .seconds(10)
     var observation = "PID absent from the listener scan"
     while process.isRunning && ContinuousClock.now < deadline {
@@ -101,7 +117,7 @@ private func checkSharedRestart(in directory: URL, port: Int, peer: Listener, to
 
     var workflow = ActionWorkflow.live
     workflow.launch = { folder, reviewedCommand in
-        replacement.currentDirectoryURL = URL(fileURLWithPath: folder)
+        configureHTTPFixture(replacement, in: URL(fileURLWithPath: folder))
         replacement.executableURL = URL(fileURLWithPath: "/bin/zsh")
         replacement.arguments = ["-c", "exec " + reviewedCommand]
         replacement.standardOutput = FileHandle.nullDevice
