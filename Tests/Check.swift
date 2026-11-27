@@ -1,7 +1,7 @@
 import Foundation
 
 @main struct Check {
-    static func main() throws {
+    static func main() async throws {
         let wire = "p23\0cnode\0u501\0\nf8\0n[::1]:3000\0\nf9\0n127.0.0.1:3000\0\nf10\0n*:3002\0\np45\0cOther tool\0u0\0\nf4\0n*:4000\0\n"
         let rows = parseListeners(Data(wire.utf8))
         precondition(rows.count == 2 && rows[0].sortedPorts == [3000, 3002] && rows[1].name == "Other tool")
@@ -39,18 +39,16 @@ import Foundation
         for _ in 0..<45 {
             fixture = try scan().first { $0.id == service.processIdentifier }
             if fixture != nil { break }
-            Thread.sleep(forTimeInterval: 0.1)
+            try await Task.sleep(for: .milliseconds(100))
         }
         guard let fixture, fixture.manageable else { throw DeskError("Disposable HTTP listener or its process identity was unavailable.") }
         precondition(restartSuggestion(fixture).contains("http.server " + fixture.portText + " --bind 127.0.0.1"))
         var stale = fixture
         stale.fingerprint = nil
-        do { try stop(stale) { _ in fatalError("Stale listener was signalled") }; fatalError("Accepted stale listener") }
-        catch is DeskError {}
-        var issued = ""
-        try stop(fixture) { issued = $0 }
-        try waitForRelease(fixture)
-        precondition(issued == "kill -TERM " + String(service.processIdentifier))
+        let rejected = await ActionWorkflow.live.perform(.stop, on: stale)
+        guard case .failed = rejected else { fatalError("Accepted stale listener") }
+        let stopped = await ActionWorkflow.live.perform(.stop, on: fixture)
+        guard case .stopped = stopped else { fatalError(stopped.summary) }
         print("Passed parser, quoting, live discovery, stale selection, graceful stop and port release.")
     }
 }

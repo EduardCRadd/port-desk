@@ -241,25 +241,3 @@ func restartSuggestion(_ row: Listener) -> String {
     if isPython, command.count > 3, command[3] == "0" { command[3] = port }
     return command.map(quote).joined(separator: " ")
 }
-
-func stop(_ selected: Listener, record: (String) -> Void) throws {
-    guard selected.manageable, let current = try scan().first(where: { $0.id == selected.id }),
-          current.manageable, current.fingerprint == selected.fingerprint, current.ports == selected.ports,
-          identity(processInfo(selected.id)) == selected.fingerprint else {
-        throw DeskError("The listener changed. Refresh and select it again.")
-    }
-    record("kill -TERM " + String(selected.id))
-    guard kill(selected.id, SIGTERM) == 0 else { throw DeskError(String(cString: strerror(errno))) }
-}
-
-func waitForRelease(_ row: Listener) throws {
-    for _ in 0..<30 {
-        let overlapping = try scan().filter { !$0.ports.isDisjoint(with: row.ports) }
-        if overlapping.isEmpty { return }
-        if !overlapping.contains(where: { $0.id == row.id && $0.fingerprint == row.fingerprint }) {
-            throw DeskError("Another listener owns a selected port. Check the refreshed list.")
-        }
-        Thread.sleep(forTimeInterval: 0.2)
-    }
-    throw DeskError("The port is still in use after SIGTERM. Check the server’s terminal.")
-}

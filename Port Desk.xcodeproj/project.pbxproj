@@ -14,6 +14,14 @@
 		5841591EBFA3798F241450F8 /* Check.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E34961E63777D064B012FC9 /* Check.swift */; };
 		BAFD7B33D929459713F2205C /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
 		E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AA3726A5ACD7267478071 /* PortDesk.swift */; };
+		358388ED0C303927C41DFC24 /* ActionWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */; };
+		A08C9C71BBC4EC5A5956BE4B /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */; };
+		9854EE50B30C66BB28903F32 /* ActionWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */; };
+		64B4E857855ADA37A65D761A /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */; };
+		6FB463C3F49C897D8824E125 /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
+		E629C1789D02F444AAA48FA5 /* ActionWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */; };
+		779C591CCDFB43D3E1D1F2AD /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */; };
+		F133953736FBCC5BDAC6BEF6 /* ActionWorkflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7338010FD4664CF14F02E3D /* ActionWorkflowTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +32,10 @@
 		6E34961E63777D064B012FC9 /* Check.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Check.swift; sourceTree = "<group>"; };
 		9475BD1994D464F98F9C9529 /* Ports.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Ports.swift; sourceTree = "<group>"; };
 		A99AA3726A5ACD7267478071 /* PortDesk.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortDesk.swift; sourceTree = "<group>"; };
+		1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionWorkflow.swift; sourceTree = "<group>"; };
+		C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalLauncher.swift; sourceTree = "<group>"; };
+		E7338010FD4664CF14F02E3D /* ActionWorkflowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionWorkflowTests.swift; sourceTree = "<group>"; };
+		2837729F05EE4B9FDCABF2CA /* Action Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Action Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -49,6 +61,7 @@
 		0B11F38D245906C1F9BA15EE /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				E7338010FD4664CF14F02E3D /* ActionWorkflowTests.swift */,
 				6E34961E63777D064B012FC9 /* Check.swift */,
 			);
 			name = Tests;
@@ -75,6 +88,7 @@
 		881250C7557121B2F9506EDD /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				2837729F05EE4B9FDCABF2CA /* Action Tests.xctest */,
 				6A68043E5338058C0BD72409 /* Port Desk.app */,
 				1D80DC98A6920C972F44498E /* Listener Checks */,
 			);
@@ -95,6 +109,8 @@
 				881250C7557121B2F9506EDD /* Products */,
 				5C3EA287B7185894B69731D9 /* Frameworks */,
 				9475BD1994D464F98F9C9529 /* Ports.swift */,
+				1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */,
+				C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */,
 				A99AA3726A5ACD7267478071 /* PortDesk.swift */,
 				0B11F38D245906C1F9BA15EE /* Tests */,
 				70A692FEC31E3213C31DCA2D /* Assets */,
@@ -137,6 +153,19 @@
 			productReference = 6A68043E5338058C0BD72409 /* Port Desk.app */;
 			productType = "com.apple.product-type.application";
 		};
+		E7EBF253D203542DC3BFF1BB /* Action Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2A1133633514147469CCA977 /* Build configuration list for Action Tests */;
+			buildPhases = (
+				D13161A084ABB15E36E9C5E4 /* Sources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = "Action Tests";
+			productName = "Action Tests";
+			productReference = 2837729F05EE4B9FDCABF2CA /* Action Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -161,6 +190,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				E7EBF253D203542DC3BFF1BB /* Action Tests */,
 				B4B7606D2112FABF65373A4E /* Port Desk */,
 				0E346B6E6100AFAFB2CA7D6F /* Listener Checks */,
 			);
@@ -183,6 +213,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				358388ED0C303927C41DFC24 /* ActionWorkflow.swift in Sources */,
+				A08C9C71BBC4EC5A5956BE4B /* TerminalLauncher.swift in Sources */,
 				BAFD7B33D929459713F2205C /* Ports.swift in Sources */,
 				E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */,
 			);
@@ -192,8 +224,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9854EE50B30C66BB28903F32 /* ActionWorkflow.swift in Sources */,
+				64B4E857855ADA37A65D761A /* TerminalLauncher.swift in Sources */,
 				48D8516E35D193B5AA6F106D /* Ports.swift in Sources */,
 				5841591EBFA3798F241450F8 /* Check.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D13161A084ABB15E36E9C5E4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6FB463C3F49C897D8824E125 /* Ports.swift in Sources */,
+				E629C1789D02F444AAA48FA5 /* ActionWorkflow.swift in Sources */,
+				779C591CCDFB43D3E1D1F2AD /* TerminalLauncher.swift in Sources */,
+				F133953736FBCC5BDAC6BEF6 /* ActionWorkflowTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,6 +336,22 @@
 			};
 			name = Release;
 		};
+		0F3D67935A4F199E058A017A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = local.portdesk.actiontests;
+			};
+			name = Debug;
+		};
+		20B70E15FDC36C625E57F658 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = local.portdesk.actiontests;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -317,6 +378,15 @@
 			buildConfigurations = (
 				2881C56DF71230A87632D40E /* Debug */,
 				FBD95C3ECEEA12248D37B2E8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2A1133633514147469CCA977 /* Build configuration list for Action Tests */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0F3D67935A4F199E058A017A /* Debug */,
+				20B70E15FDC36C625E57F658 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
