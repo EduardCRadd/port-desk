@@ -88,6 +88,7 @@ struct Dashboard: View {
 
     private func portLine(_ item: PortRow) -> some View {
         let row = item.listener
+        let metrics = desk.metrics[row.id] ?? ProcessMetrics()
         let active = hovered == item.id || selection == item.id
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
@@ -100,9 +101,10 @@ struct Dashboard: View {
                     HStack(spacing: 6) {
                         Label("Unknown", systemImage: "questionmark.dashed")
                         Label(uptime(row), systemImage: "clock")
-                        Label("—", systemImage: "cpu")
-                        Label("—", systemImage: "memorychip")
-                        Label("—", systemImage: "bolt.fill")
+                        Label(metrics.cpuText, systemImage: "cpu")
+                        Label(metrics.memoryText, systemImage: "memorychip")
+                        Label(metrics.energy ?? "—", systemImage: "bolt.fill")
+                            .foregroundStyle(metrics.energy == "Low" ? Color.green : Color.secondary)
                     }.labelStyle(.titleAndIcon).font(.caption).foregroundStyle(.secondary)
                 }.frame(maxWidth: .infinity, alignment: .leading)
                 if active && row.manageable {
@@ -138,7 +140,8 @@ struct Dashboard: View {
     }
 
     private func inspector(_ item: PortRow) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
+        let metrics = desk.metrics[item.listener.id] ?? ProcessMetrics()
+        return VStack(alignment: .leading, spacing: 7) {
             Grid(alignment: .topLeading, horizontalSpacing: 10, verticalSpacing: 5) {
                 ForEach([("PID", String(item.listener.id)), ("Command", item.listener.name),
                          ("Directory", item.listener.directory ?? "Unavailable")], id: \.0) { pair in
@@ -151,7 +154,7 @@ struct Dashboard: View {
             Divider()
             HStack(spacing: 15) {
                 ForEach([("Port", ":" + String(item.endpoint.port)), ("Uptime", uptime(item.listener)),
-                         ("CPU", "—"), ("Memory", "—"), ("Energy", "—")], id: \.0) { pair in
+                         ("CPU", metrics.cpuText), ("Memory", metrics.memoryText), ("Energy", metrics.energy.map { $0 + " impact" } ?? "—")], id: \.0) { pair in
                     VStack(alignment: .leading) {
                         Text(pair.0).font(.caption2).foregroundStyle(.secondary)
                         Text(pair.1)
