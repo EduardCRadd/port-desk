@@ -33,3 +33,7 @@ The [listener history](history/listeners.md) records changes to these checks and
 The shared-port fixture serves a temporary page from one directory on an ephemeral port with distinct IPv4 and IPv6 loopback listeners. It verifies the selected IPv4 listener stops, checks the surviving IPv6 PID and endpoint in the result, and requests the page again from that peer.
 
 The same fixture then restarts a fresh IPv4 listener using the reviewed command in a disposable shell. It verifies the replacement PID owns the selected endpoint, checks that the original IPv6 peer kept its identity, and fetches both pages. Exercise the interactive Terminal handoff separately on a desktop Mac.
+
+The Terminal button locates an existing Terminal.app window and tab by the selected process’s controlling TTY. Discovery checks the parent chain and displays Unknown when it cannot attribute a session to Terminal. Revealing a tab rechecks identity and TTY, then requests Automation access on demand. Restart remains a separate command that launches a new shell.
+
+Kill all captures one eligible listener per PID at review time and displays every affected port. Each confirmed Stop independently revalidates that snapshot and records the result. Read-only processes shown by Show all never enter the bulk review.

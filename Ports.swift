@@ -117,6 +117,7 @@ struct Listener: Identifiable {
     var endpoints = Set<Endpoint>()
     var ports: Set<Int> { Set(endpoints.map(\.port)) }
     var sharedPorts = Set<Int>()
+    var terminal: String?
     var usesHTTPS = false
 
     var previewEndpoints: [Endpoint] {
@@ -187,6 +188,7 @@ func scan(previewSchemes: Bool = false) throws -> [Listener] {
         if proc_pidpath(row.id, &path, UInt32(path.count)) > 0 {
             row.executable = String(decoding: path.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
         }
+        if previewSchemes { row.terminal = terminalTTY(for: row) }
         if previewSchemes, row.manageable, let info {
             let args = arguments(row.id)
             let parent = arguments(Int32(info.pbi_ppid))

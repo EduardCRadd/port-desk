@@ -42,6 +42,7 @@ struct Selection: Identifiable {
 
 @MainActor final class Desk: ObservableObject {
     @Published var rows = [Listener]()
+    @Published var actionMessage = ""
     @Published var scanError = ""
     @Published var busy = false
     @Published var loaded = false
@@ -111,11 +112,28 @@ struct Selection: Identifiable {
         if log.count > 120 { log.removeFirst() }
     }
 
+    func stopAll(_ captured: [Listener]) async {
+        guard !busy, !captured.isEmpty else { return }
+        busy = true
+        defer { busy = false }
+        var results: [String] = []
+        for row in captured {
+            let outcome = await ActionWorkflow.live.perform(.stop, on: row) { await self.append($0) }
+            let line = "\(row.project) (PID \(row.id)): " + outcome.summary
+            append(line)
+            results.append(line)
+        }
+        lastOutcome = nil
+        actionMessage = results.joined(separator: "\n")
+        await refresh()
+    }
+
     func perform(_ selection: Selection, command: String) async {
         guard !busy else { return }
         busy = true
         defer { busy = false }
         let row = selection.row
+        actionMessage = ""
         append("\(Date.now.formatted(date: .omitted, time: .standard))  \(selection.action.rawValue) · \(row.project) · \(row.portText)")
         lastOutcome = nil
         let outcome = await ActionWorkflow.live.perform(selection.action, on: row, command: command) { message in
