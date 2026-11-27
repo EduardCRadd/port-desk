@@ -17,6 +17,7 @@
 		109099083F1D24028A8675D6 /* ListenerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */; };
 		BAFD7B33D929459713F2205C /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
 		E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AA3726A5ACD7267478071 /* PortDesk.swift */; };
+		00F3433A328F3B0F75CE6E45 /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2368B0F480BF9B7C42267529 /* Dashboard.swift */; };
 		358388ED0C303927C41DFC24 /* ActionWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */; };
 		D8757BC0ED9496C7F4095320 /* RestartBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82CBF3798118ED30ECF159E1 /* RestartBinding.swift */; };
 		A08C9C71BBC4EC5A5956BE4B /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */; };
@@ -41,6 +42,7 @@
 		F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListenerDiscovery.swift; sourceTree = "<group>"; };
 		9475BD1994D464F98F9C9529 /* Ports.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Ports.swift; sourceTree = "<group>"; };
 		A99AA3726A5ACD7267478071 /* PortDesk.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortDesk.swift; sourceTree = "<group>"; };
+		2368B0F480BF9B7C42267529 /* Dashboard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
 		1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionWorkflow.swift; sourceTree = "<group>"; };
 		82CBF3798118ED30ECF159E1 /* RestartBinding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartBinding.swift; sourceTree = "<group>"; };
 		C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalLauncher.swift; sourceTree = "<group>"; };
@@ -125,6 +127,7 @@
 				82CBF3798118ED30ECF159E1 /* RestartBinding.swift */,
 				C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */,
 				A99AA3726A5ACD7267478071 /* PortDesk.swift */,
+				2368B0F480BF9B7C42267529 /* Dashboard.swift */,
 				0B11F38D245906C1F9BA15EE /* Tests */,
 				70A692FEC31E3213C31DCA2D /* Assets */,
 			);
@@ -232,6 +235,7 @@
 				109099083F1D24028A8675D6 /* ListenerDiscovery.swift in Sources */,
 				BAFD7B33D929459713F2205C /* Ports.swift in Sources */,
 				E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */,
+				00F3433A328F3B0F75CE6E45 /* Dashboard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
