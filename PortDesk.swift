@@ -122,7 +122,7 @@ struct Review: View {
             if selection.action == .restart {
                 Divider()
                 Text("Start command").font(.headline)
-                Text("Terminal runs this command in a new shell after the port is free. Include any settings your server needs.")
+                Text("Terminal runs this command in a new shell after the selected server stops. Shared ports require an explicit bind to the selected address.")
                     .foregroundStyle(.secondary)
                 Text("cd -- " + quote(row.directory ?? "")).foregroundStyle(terminalGreen).font(.system(.caption, design: .monospaced))
                     .textSelection(.enabled)
