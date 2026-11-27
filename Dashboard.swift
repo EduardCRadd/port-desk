@@ -4,6 +4,8 @@ import SwiftUI
 
 struct Dashboard: View {
     @ObservedObject var desk: Desk
+    var showSettings: () -> Void
+    var didOpen: () -> Void
     @Environment(\.accessibilityReduceTransparency) private var opaque
     @AppStorage("showAll") private var showAll = false
     @State private var expanded: PortRow.ID?
@@ -51,11 +53,15 @@ struct Dashboard: View {
         .frame(width: 470)
         .background {
             ZStack {
-                TerminalBackdrop(desk: desk)
+                TerminalBackdrop()
                 if opaque { Color(nsColor: .windowBackgroundColor) }
             }.ignoresSafeArea()
         }
         .preferredColorScheme(.dark)
+        .onChange(of: desk.keyboardRequest) { _, _ in
+            listFocused = true
+            if !rows.contains(where: { $0.id == selection }) { selection = rows.first?.id }
+        }
         .onChange(of: desk.busy) { wasBusy, busy in
             if wasBusy, !busy, let message = desk.lastOutcome?.summary, NSApp.keyWindow != nil {
                 AccessibilityNotification.Announcement(message).post()
@@ -104,6 +110,7 @@ struct Dashboard: View {
             }
             Divider()
             HStack {
+                Button("Settings", systemImage: "gearshape", action: showSettings).keyboardShortcut(",")
                 Spacer()
                 let eligible = desk.rows.filter(\.manageable)
                 Button("Kill all (" + String(eligible.count) + ")", systemImage: "xmark.octagon") {
@@ -157,7 +164,7 @@ struct Dashboard: View {
             if row.manageable {
                 Button("Restart…") { confirm(.restart, row) }.disabled(desk.busy)
                 if let alternate = url(item, alternate: true) {
-                    Button("Open with " + (alternate.scheme?.uppercased() ?? "")) { NSWorkspace.shared.open(alternate) }
+                    Button("Open with " + (alternate.scheme?.uppercased() ?? "")) { if NSWorkspace.shared.open(alternate) { didOpen() } }
                 }
             }
             Button("Command History") { history = true }
@@ -226,13 +233,13 @@ struct Dashboard: View {
     }
 
     private func open(_ item: PortRow) {
-        if item.listener.manageable, let url = url(item) { NSWorkspace.shared.open(url) }
+        if item.listener.manageable, let url = url(item), NSWorkspace.shared.open(url) { didOpen() }
     }
 
     private func terminal(_ row: Listener) {
         guard row.terminal != nil else { return }
         Task {
-            do { try await revealTerminal(row) }
+            do { try await revealTerminal(row); didOpen() }
             catch { desk.actionMessage = error.localizedDescription }
         }
     }

@@ -41,6 +41,7 @@ struct Selection: Identifiable {
 }
 
 @MainActor final class Desk: ObservableObject {
+    @Published var keyboardRequest = 0
     @Published var rows = [Listener]()
     @Published var actionMessage = ""
     @Published var scanError = ""
@@ -189,53 +190,17 @@ struct Review: View {
 
 // On macOS 14 the SwiftUI window has an opaque backing beneath its content.
 struct TerminalBackdrop: NSViewRepresentable {
-    let desk: Desk
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
-    final class BackdropView: NSVisualEffectView {
-        weak var desk: Desk?
-
-        override func viewDidMoveToWindow() {
-            super.viewDidMoveToWindow()
-            NotificationCenter.default.removeObserver(self, name: NSWindow.didChangeOcclusionStateNotification, object: nil)
-            if let window {
-                window.isOpaque = false
-                window.backgroundColor = .clear
-                NotificationCenter.default.addObserver(self, selector: #selector(visibilityChanged),
-                    name: NSWindow.didChangeOcclusionStateNotification, object: window)
-            }
-            visibilityChanged()
-        }
-
-        // The menu bar can retain the content view while its panel is closed.
-        @objc private func visibilityChanged() {
-            desk?.setPanelVisible(window?.occlusionState.contains(.visible) == true)
-        }
-    }
-
-    func makeNSView(context: Context) -> BackdropView {
-        let view = BackdropView()
-        view.desk = desk
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
         view.material = .hudWindow
         view.blendingMode = .behindWindow
         view.state = .active
         return view
     }
 
-    func updateNSView(_ view: BackdropView, context: Context) {
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {
         view.isHidden = reduceTransparency
-    }
-}
-
-@main struct PortDeskApp: App {
-    @StateObject private var desk = Desk()
-
-    var body: some Scene {
-        MenuBarExtra {
-            Dashboard(desk: desk)
-        } label: {
-            Image(systemName: "powerplug.fill")
-            Text(String(desk.rows.filter(\.manageable).count))
-        }.menuBarExtraStyle(.window)
     }
 }
