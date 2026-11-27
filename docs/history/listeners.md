@@ -8,7 +8,7 @@ Keywords: listener, SIGTERM, process identity, restart, Terminal, Swift Testing
 
 ## 2026-11-27 — Distinguish a stopped process from a vacant port
 
-Stop used to report failure if a second listener kept serving on the same port number. It now identifies the selected process by PID and start time and reports the surviving endpoints and PIDs. The pre-signal check compares reviewed endpoints to catch address changes on the same port number. Controlled tests exercise both cases. The live check starts IPv4 and IPv6 servers in one directory on the same port and fetches the surviving peer after Stop. On the hosted runner, the IPv6 Python CLI stayed alive without a discoverable listening socket. The fixture now binds the numeric IPv6 address directly through Python’s TCPServer, which removes a hostname lookup from startup.
+Stop used to report failure if a second listener kept serving on the same port number. It now identifies the selected process by PID and start time and reports the surviving endpoints and PIDs. The pre-signal check compares reviewed endpoints to catch address changes on the same port number. Controlled tests exercise both cases. The live check starts IPv4 and IPv6 servers in one directory on the same port and fetches the surviving peer after Stop. On the hosted runner, Python’s IPv6 and subsequent IPv4 fixtures stayed alive without a discoverable listening socket. The fixture supplies the hostname for its two numeric loopback addresses to avoid reverse DNS during HTTP server startup. The real Python CLI, listening sockets and HTTP requests still exercise the workflow.
 
 ## 2026-11-27 — Exercise action failures without signalling live servers
 

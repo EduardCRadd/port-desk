@@ -8,7 +8,9 @@ import Foundation
             return
         }
         try await checkDiscovery()
-        try await checkSharedStop()
+        let directory = try makeHTTPFixtureDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try await checkSharedStop(in: directory)
         let wire = "p23\0cnode\0u501\0\nf8\0n[::1]:3000\0\nf9\0n127.0.0.1:3000\0\nf10\0n*:3002\0\np45\0cOther tool\0u0\0\nf4\0n*:4000\0\n"
         let rows = parseListeners(Data(wire.utf8))
         precondition(rows.count == 2 && rows[0].sortedPorts == [3000, 3002] && rows[1].name == "Other tool")
@@ -35,20 +37,9 @@ import Foundation
         helper.directory = "/Applications/Editor.app/Contents/MacOS"
         helper.executable = helper.directory! + "/helper"
         precondition(!helper.manageable)
-        let service = Process()
-        service.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        service.arguments = ["python3", "-m", "http.server", "0", "--bind", "127.0.0.1"]
-        service.standardOutput = FileHandle.nullDevice
-        service.standardError = FileHandle.nullDevice
-        try service.run()
-        defer { if service.isRunning { service.terminate(); service.waitUntilExit() } }
-        var fixture: Listener?
-        for _ in 0..<45 {
-            fixture = try scan().first { $0.id == service.processIdentifier }
-            if fixture != nil { break }
-            try await Task.sleep(for: .milliseconds(100))
-        }
-        guard let fixture, fixture.manageable else { throw DeskError("Disposable HTTP listener or its process identity was unavailable.") }
+        let service = try startHTTPServer(in: directory, host: "127.0.0.1", port: 0)
+        defer { finish(service) }
+        let fixture = try findFixture(service)
         precondition(restartSuggestion(fixture).contains("http.server " + fixture.portText + " --bind 127.0.0.1"))
         var stale = fixture
         stale.fingerprint = nil
