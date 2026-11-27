@@ -12,11 +12,13 @@
 		28B38EF67ADCBD64B6FC925E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FECC946D70EC4B5B61CCFB /* Cocoa.framework */; };
 		FF14E4DFA2C71F5DC04130A6 /* ListenerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */; };
 		48D8516E35D193B5AA6F106D /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
+		60A4282F4D5D2658B37934EF /* TerminalSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255D3B9B0F69001ABCD4BA94 /* TerminalSession.swift */; };
 		7F3BB4C8BFAEF2CF12136CE1 /* ProcessMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F520C186582C683ED82D0D89 /* ProcessMetrics.swift */; };
 		5841591EBFA3798F241450F8 /* Check.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E34961E63777D064B012FC9 /* Check.swift */; };
 		FA1200000000000000000001 /* SharedPortChecks.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1200000000000000000002 /* SharedPortChecks.swift */; };
 		109099083F1D24028A8675D6 /* ListenerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */; };
 		BAFD7B33D929459713F2205C /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
+		6FBF77F6DD91E47143568328 /* TerminalSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255D3B9B0F69001ABCD4BA94 /* TerminalSession.swift */; };
 		7E6AE842BB7DE04F6D508E91 /* ProcessMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F520C186582C683ED82D0D89 /* ProcessMetrics.swift */; };
 		E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AA3726A5ACD7267478071 /* PortDesk.swift */; };
 		00F3433A328F3B0F75CE6E45 /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2368B0F480BF9B7C42267529 /* Dashboard.swift */; };
@@ -28,6 +30,7 @@
 		64B4E857855ADA37A65D761A /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */; };
 		F3FD65411AAED7566EAF9740 /* ListenerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */; };
 		6FB463C3F49C897D8824E125 /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
+		4A07C285A26AC545C9E68BBB /* TerminalSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255D3B9B0F69001ABCD4BA94 /* TerminalSession.swift */; };
 		68C650A5E2D8AD46FF11256B /* ProcessMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F520C186582C683ED82D0D89 /* ProcessMetrics.swift */; };
 		E629C1789D02F444AAA48FA5 /* ActionWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */; };
 		6BF16F6C81BF10BBDF086402 /* RestartBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82CBF3798118ED30ECF159E1 /* RestartBinding.swift */; };
@@ -44,6 +47,7 @@
 		FA1200000000000000000002 /* SharedPortChecks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SharedPortChecks.swift; sourceTree = "<group>"; };
 		F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListenerDiscovery.swift; sourceTree = "<group>"; };
 		9475BD1994D464F98F9C9529 /* Ports.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Ports.swift; sourceTree = "<group>"; };
+		255D3B9B0F69001ABCD4BA94 /* TerminalSession.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TerminalSession.swift; sourceTree = "<group>"; };
 		F520C186582C683ED82D0D89 /* ProcessMetrics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProcessMetrics.swift; sourceTree = "<group>"; };
 		A99AA3726A5ACD7267478071 /* PortDesk.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortDesk.swift; sourceTree = "<group>"; };
 		2368B0F480BF9B7C42267529 /* Dashboard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
@@ -127,6 +131,7 @@
 				5C3EA287B7185894B69731D9 /* Frameworks */,
 				F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */,
 				9475BD1994D464F98F9C9529 /* Ports.swift */,
+				255D3B9B0F69001ABCD4BA94 /* TerminalSession.swift */,
 				F520C186582C683ED82D0D89 /* ProcessMetrics.swift */,
 				1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */,
 				82CBF3798118ED30ECF159E1 /* RestartBinding.swift */,
@@ -239,6 +244,7 @@
 				A08C9C71BBC4EC5A5956BE4B /* TerminalLauncher.swift in Sources */,
 				109099083F1D24028A8675D6 /* ListenerDiscovery.swift in Sources */,
 				BAFD7B33D929459713F2205C /* Ports.swift in Sources */,
+				6FBF77F6DD91E47143568328 /* TerminalSession.swift in Sources */,
 				7E6AE842BB7DE04F6D508E91 /* ProcessMetrics.swift in Sources */,
 				E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */,
 				00F3433A328F3B0F75CE6E45 /* Dashboard.swift in Sources */,
@@ -254,6 +260,7 @@
 				64B4E857855ADA37A65D761A /* TerminalLauncher.swift in Sources */,
 				FF14E4DFA2C71F5DC04130A6 /* ListenerDiscovery.swift in Sources */,
 				48D8516E35D193B5AA6F106D /* Ports.swift in Sources */,
+				60A4282F4D5D2658B37934EF /* TerminalSession.swift in Sources */,
 				7F3BB4C8BFAEF2CF12136CE1 /* ProcessMetrics.swift in Sources */,
 				5841591EBFA3798F241450F8 /* Check.swift in Sources */,
 				FA1200000000000000000001 /* SharedPortChecks.swift in Sources */,
@@ -266,6 +273,7 @@
 			files = (
 				F3FD65411AAED7566EAF9740 /* ListenerDiscovery.swift in Sources */,
 				6FB463C3F49C897D8824E125 /* Ports.swift in Sources */,
+				4A07C285A26AC545C9E68BBB /* TerminalSession.swift in Sources */,
 				68C650A5E2D8AD46FF11256B /* ProcessMetrics.swift in Sources */,
 				E629C1789D02F444AAA48FA5 /* ActionWorkflow.swift in Sources */,
 				6BF16F6C81BF10BBDF086402 /* RestartBinding.swift in Sources */,
@@ -293,6 +301,7 @@
 				EXECUTABLE_NAME = PortDesk;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Reveal the Terminal tab running the selected server.";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = local.portdesk.dashboard;
@@ -339,6 +348,7 @@
 				EXECUTABLE_NAME = PortDesk;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Reveal the Terminal tab running the selected server.";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = local.portdesk.dashboard;

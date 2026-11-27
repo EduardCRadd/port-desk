@@ -10,6 +10,7 @@ struct Dashboard: View {
     @State private var hovered: PortRow.ID?
     @State private var selection: PortRow.ID?
     @State private var review: Selection?
+    @State private var bulk: [Listener]?
     @State private var history = false
     @FocusState private var listFocused: Bool
 
@@ -22,6 +23,25 @@ struct Dashboard: View {
                     self.review = nil
                     Task { await desk.perform(review, command: command) }
                 }.id(review.id).padding().frame(height: 300)
+            } else if let bulk {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Stop \(bulk.count) development servers?").font(.headline)
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(bulk) { row in
+                                Text("\(row.project) · PID \(row.id) · ports \(row.portText)")
+                            }
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    HStack {
+                        Spacer()
+                        Button("Cancel") { self.bulk = nil }.keyboardShortcut(.cancelAction)
+                        Button("Stop all", role: .destructive) {
+                            self.bulk = nil
+                            Task { await desk.stopAll(bulk) }
+                        }.keyboardShortcut(.return, modifiers: .command)
+                    }
+                }.padding().frame(height: 230)
             } else if history {
                 historyView
             } else {
@@ -73,7 +93,11 @@ struct Dashboard: View {
             .onKeyPress(.upArrow) { move(-1); return .handled }
             .onKeyPress(.downArrow) { move(1); return .handled }
             .onKeyPress("o") { selectedAction { open($0) } }
+            .onKeyPress("t") { selectedAction { terminal($0.listener) } }
             .onKeyPress("k") { selectedAction { confirm(.stop, $0.listener) } }
+            if !desk.actionMessage.isEmpty {
+                ScrollView { Text(desk.actionMessage).font(.caption).textSelection(.enabled) }.frame(maxHeight: 56)
+            }
             if !desk.scanError.isEmpty { Text(desk.scanError).foregroundStyle(.orange).padding(4) }
             if let summary = desk.lastOutcome?.summary, !desk.busy {
                 Text(summary).font(.caption).padding(4).textSelection(.enabled)
@@ -81,6 +105,10 @@ struct Dashboard: View {
             Divider()
             HStack {
                 Spacer()
+                let eligible = desk.rows.filter(\.manageable)
+                Button("Kill all (" + String(eligible.count) + ")", systemImage: "xmark.octagon") {
+                    bulk = eligible
+                }.disabled(eligible.isEmpty || desk.busy)
                 Button("Quit") { NSApp.terminate(nil) }.disabled(desk.busy).keyboardShortcut("q")
             }.padding(.horizontal, 12).frame(height: 29)
         }.buttonStyle(.plain)
@@ -99,7 +127,7 @@ struct Dashboard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.title).font(.headline).lineLimit(1)
                     HStack(spacing: 6) {
-                        Label("Unknown", systemImage: "questionmark.dashed")
+                        Label(row.terminal == nil ? "Unknown" : "Terminal", systemImage: row.terminal == nil ? "questionmark.square.dashed" : "terminal")
                         Label(uptime(row), systemImage: "clock")
                         Label(metrics.cpuText, systemImage: "cpu")
                         Label(metrics.memoryText, systemImage: "memorychip")
@@ -109,6 +137,8 @@ struct Dashboard: View {
                 }.frame(maxWidth: .infinity, alignment: .leading)
                 if active && row.manageable {
                     icon("arrow.up.right.square", "Open " + (url(item)?.absoluteString ?? item.title)) { open(item) }
+                    icon("terminal", "Open the Terminal tab running this app") { terminal(row) }
+                        .disabled(row.terminal == nil)
                     icon("xmark.octagon", "Kill this process") { confirm(.stop, row) }.disabled(desk.busy)
                 }
                 icon(expanded == item.id ? "chevron.down" : "chevron.right", "Details for \(item.title), PID \(row.id)") {
@@ -197,6 +227,14 @@ struct Dashboard: View {
 
     private func open(_ item: PortRow) {
         if item.listener.manageable, let url = url(item) { NSWorkspace.shared.open(url) }
+    }
+
+    private func terminal(_ row: Listener) {
+        guard row.terminal != nil else { return }
+        Task {
+            do { try await revealTerminal(row) }
+            catch { desk.actionMessage = error.localizedDescription }
+        }
     }
 
     private func confirm(_ action: Action, _ row: Listener) {
