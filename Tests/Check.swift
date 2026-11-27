@@ -8,6 +8,7 @@ import Foundation
             return
         }
         try await checkDiscovery()
+        try await checkSharedStop()
         let wire = "p23\0cnode\0u501\0\nf8\0n[::1]:3000\0\nf9\0n127.0.0.1:3000\0\nf10\0n*:3002\0\np45\0cOther tool\0u0\0\nf4\0n*:4000\0\n"
         let rows = parseListeners(Data(wire.utf8))
         precondition(rows.count == 2 && rows[0].sortedPorts == [3000, 3002] && rows[1].name == "Other tool")

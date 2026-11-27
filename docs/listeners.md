@@ -27,3 +27,5 @@ Port Desk checks every original port for a listener with the same user and worki
 The [build guide](architecture.md#build-and-check) runs [controlled Swift Testing cases](../Tests/ActionWorkflowTests.swift) and the scanner and stop fixture. To exercise restart, use a disposable server in a distinct working folder, review its shell command and confirm the original port returns there. For a multi-port server, check the partial-return case as well as full recovery. Inspect the browser response separately using its port link.
 
 The [listener history](history/listeners.md) records changes to these checks and outcomes.
+
+The shared-port fixture serves a temporary page from one directory on an ephemeral port with distinct IPv4 and IPv6 loopback listeners. It verifies the selected IPv4 listener stops, checks the surviving IPv6 PID and endpoint in the result, and requests the page again from that peer.

@@ -1,0 +1,71 @@
+import Foundation
+
+/// Exercise two real listeners in the same working directory on different loopback addresses.
+func checkSharedStop() async throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let token = UUID().uuidString
+    try token.write(to: directory.appendingPathComponent("index.html"), atomically: true, encoding: .utf8)
+
+    let ipv4 = try startHTTPServer(in: directory, host: "127.0.0.1", port: 0)
+    defer { finish(ipv4) }
+    let port = try findFixture(ipv4).sortedPorts[0]
+    let ipv6 = try startHTTPServer(in: directory, host: "::1", port: port)
+    defer { finish(ipv6) }
+    let peer = try findFixture(ipv6)
+    let selected = try findFixture(ipv4)
+    precondition(selected.sharedPorts == [port] && peer.sharedPorts == [port])
+    let peerURL = URL(string: "http://[::1]:\(port)/")!
+    try checkResponse(at: peerURL, expected: token)
+
+    let outcome = await ActionWorkflow.live.perform(.stop, on: selected)
+    guard case let .stopped(remaining) = outcome,
+          remaining.contains(where: { $0.id == peer.id && peer.endpoints.contains($0.endpoint) }) else {
+        throw DeskError("Stop did not identify the surviving IPv6 listener: " + outcome.summary)
+    }
+    try checkResponse(at: peerURL, expected: token)
+    print("Shared Stop released the IPv4 listener and the original IPv6 peer still serves its page.")
+}
+/// An HTTP server owned by this check. Never signal a PID discovered by port alone.
+private func startHTTPServer(in directory: URL, host: String, port: Int) throws -> Process {
+    let process = Process()
+    process.currentDirectoryURL = directory
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+    process.arguments = ["python3", "-m", "http.server", String(port), "--bind", host]
+    process.standardOutput = FileHandle.nullDevice
+    process.standardError = FileHandle.nullDevice
+    try process.run()
+    return process
+}
+
+private func finish(_ process: Process) {
+    if process.isRunning { process.terminate() }
+    process.waitUntilExit()
+}
+
+private func findFixture(_ process: Process) throws -> Listener {
+    let deadline = ContinuousClock.now + .seconds(5)
+    while process.isRunning && ContinuousClock.now < deadline {
+        if let row = try scan().first(where: { $0.id == process.processIdentifier && $0.manageable }) {
+            return row
+        }
+        Thread.sleep(forTimeInterval: 0.05)
+    }
+    throw DeskError("The disposable HTTP server did not become available.")
+}
+
+private func checkResponse(at url: URL, expected: String) throws {
+    let request = Process()
+    let output = Pipe()
+    request.executableURL = URL(fileURLWithPath: "/usr/bin/curl")
+    request.arguments = ["--noproxy", "*", "--fail", "--silent", "--show-error",
+                         "--max-time", "3", url.absoluteString]
+    request.standardOutput = output
+    try request.run()
+    let data = output.fileHandleForReading.readDataToEndOfFile()
+    request.waitUntilExit()
+    guard request.terminationStatus == 0 && String(decoding: data, as: UTF8.self) == expected else {
+        throw DeskError("The disposable listener did not serve its fixture at " + url.absoluteString)
+    }
+}
