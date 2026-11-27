@@ -2,7 +2,7 @@
 
 Purpose: Record changes to the dashboard surface, state ownership and interactions.
 
-Read this before touching: [Dashboard guide](../dashboard.md), [presentation and coordinator](../../PortDesk.swift), [bundle metadata](../../build.sh).
+Read this before touching: [Dashboard guide](../dashboard.md), [presentation and coordinator](../../PortDesk.swift), [bundle settings](../../Port%20Desk.xcodeproj/project.pbxproj).
 
 Keywords: menu bar, disclosure, compact row, polling, accessibility, command history
 

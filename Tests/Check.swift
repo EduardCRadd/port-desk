@@ -29,8 +29,8 @@ import Foundation
         helper.executable = helper.directory! + "/helper"
         precondition(!helper.manageable)
         let service = Process()
-        service.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
-        service.arguments = ["-m", "http.server", "0", "--bind", "127.0.0.1"]
+        service.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        service.arguments = ["python3", "-m", "http.server", "0", "--bind", "127.0.0.1"]
         service.standardOutput = FileHandle.nullDevice
         service.standardError = FileHandle.nullDevice
         try service.run()
