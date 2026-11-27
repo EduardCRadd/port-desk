@@ -11,7 +11,7 @@ struct DeskError: LocalizedError {
     var errorDescription: String? { message }
 }
 
-struct Identity: Equatable {
+struct Identity: Hashable {
     let uid: uid_t
     let seconds: UInt64
     let micros: UInt64
@@ -235,4 +235,24 @@ func restartSuggestion(_ row: Listener) -> String {
     var command = [first] + args.dropFirst()
     if isPython, command.count > 3, command[3] == "0" { command[3] = port }
     return command.map(quote).joined(separator: " ")
+}
+
+/// The display unit is a port; actions always receive the entire captured listener.
+struct PortRow: Identifiable {
+    struct ID: Hashable {
+        let pid: Int32
+        let identity: Identity?
+        let port: Int
+    }
+
+    let listener: Listener
+    let endpoint: Endpoint
+    var id: ID { ID(pid: listener.id, identity: listener.fingerprint, port: endpoint.port) }
+    var title: String { listener.manageable ? listener.project : listener.name }
+
+    static func list(_ listeners: [Listener], showAll: Bool) -> [Self] {
+        listeners.filter { showAll || $0.manageable }.flatMap { listener in
+            listener.previewEndpoints.map { Self(listener: listener, endpoint: $0) }
+        }.sorted { ($0.endpoint.port, $0.listener.id) < ($1.endpoint.port, $1.listener.id) }
+    }
 }
