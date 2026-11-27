@@ -41,28 +41,27 @@ struct Preferences: View {
             switch tab {
             case .general:
                 card {
-                    Toggle("Launch at login", isOn: Binding(get: { loginStatus == .enabled || loginStatus == .requiresApproval },
-                                                             set: changeLogin)).disabled(savingLogin)
+                    switchRow("Launch at login", Binding(get: { loginStatus == .enabled || loginStatus == .requiresApproval }, set: changeLogin)).disabled(savingLogin)
                     if loginStatus == .requiresApproval {
                         Button("Allow in Login Items…") { SMAppService.openSystemSettingsLoginItems() }
                     }
                     if !loginError.isEmpty { Text(loginError).font(.caption).foregroundStyle(.orange) }
                     Divider()
-                    Toggle("Show all listening ports", isOn: $showAll)
+                    switchRow("Show all listening ports", $showAll)
                     Divider()
                     hint("When off, only development servers are shown.")
                     Divider()
-                    Toggle("Close menu after opening", isOn: $closeAfterOpening)
+                    switchRow("Close menu after opening", $closeAfterOpening)
                     Divider()
                     hint("Dismiss the menu when you open a server or terminal. Turn off to keep it open.")
                 }
                 Text("About").font(.headline).padding(.leading, 10).padding(.top, 16)
                 card {
-                    LabeledContent("Version", value: "v" + version("CFBundleShortVersionString") + " (" + version("CFBundleVersion") + ")")
+                    valueRow("Version", "v" + version("CFBundleShortVersionString") + " (" + version("CFBundleVersion") + ")")
                 }
             case .shortcut:
                 card {
-                    Toggle("Open Ports with a global shortcut", isOn: Binding(get: { shortcuts.enabled }, set: shortcuts.setEnabled))
+                    switchRow("Open Ports with a global shortcut", Binding(get: { shortcuts.enabled }, set: shortcuts.setEnabled))
                     Divider()
                     HStack {
                         Text("Shortcut")
@@ -76,7 +75,7 @@ struct Preferences: View {
                 }
             case .refresh:
                 card {
-                    LabeledContent("Live update interval", value: "\(interval)s")
+                    valueRow("Live update interval", "\(interval)s")
                     Divider()
                     HStack {
                         Spacer()
@@ -93,18 +92,34 @@ struct Preferences: View {
         }
         .toggleStyle(.switch).controlSize(.small)
         .padding(.horizontal, 20).padding(.bottom, 20)
-        .frame(width: 420, height: 418, alignment: .top)
+        .frame(width: 420, height: 416, alignment: .top)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             loginStatus = SMAppService.mainApp.status
         }
     }
 
+    private func switchRow(_ label: String, _ value: Binding<Bool>) -> some View {
+        HStack {
+            Text(label).font(.system(size: 12.5))
+            Spacer()
+            Toggle(label, isOn: value).labelsHidden().controlSize(.mini)
+        }
+    }
+
+    private func valueRow(_ label: String, _ value: String) -> some View {
+        HStack {
+            Text(label).font(.system(size: 12.5))
+            Spacer()
+            Text(value).foregroundStyle(.secondary)
+        }
+    }
+
     private func version(_ key: String) -> String { Bundle.main.object(forInfoDictionaryKey: key) as? String ?? "—" }
     private func hint(_ text: String) -> some View {
-        Text(text).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        Text(text).font(.system(size: 10.5)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     }
     private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 9, content: content)
+        VStack(alignment: .leading, spacing: 10, content: content)
             .padding(10).frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 12))
     }
@@ -119,5 +134,35 @@ struct Preferences: View {
                 loginError = ""
             } catch { loginError = error.localizedDescription }
         }
+    }
+}
+
+/// Keep the settings title centered above the three tabs across macOS title-bar styles.
+@MainActor final class PreferencesWindow: NSWindow {
+    private let heading = NSTextField(labelWithString: "")
+
+    init(tab: SettingsTab) {
+        super.init(contentRect: NSRect(x: 0, y: 0, width: 420, height: 416),
+                   styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        isReleasedWhenClosed = false
+        titleVisibility = .hidden
+        titlebarAppearsTransparent = true
+        appearance = NSAppearance(named: .darkAqua)
+        if let bar = standardWindowButton(.closeButton)?.superview {
+            heading.font = .systemFont(ofSize: 13, weight: .semibold)
+            heading.textColor = .secondaryLabelColor
+            heading.translatesAutoresizingMaskIntoConstraints = false
+            bar.addSubview(heading)
+            NSLayoutConstraint.activate([
+                heading.centerXAnchor.constraint(equalTo: bar.centerXAnchor),
+                heading.centerYAnchor.constraint(equalTo: bar.centerYAnchor)
+            ])
+        }
+        setHeading(tab.rawValue)
+    }
+
+    func setHeading(_ text: String) {
+        title = text
+        heading.stringValue = text
     }
 }

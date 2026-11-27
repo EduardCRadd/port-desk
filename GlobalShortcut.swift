@@ -37,16 +37,21 @@ struct Shortcut: Equatable {
     private var registration: EventHotKeyRef?
     private var handler: EventHandlerRef?
     private let open: () -> Void
+    private let defaults: UserDefaults
 
-    init(open: @escaping () -> Void) {
+    init(defaults: UserDefaults = .standard, open: @escaping () -> Void) {
+        self.defaults = defaults
         self.open = open
-        let defaults = UserDefaults.standard
         enabled = defaults.object(forKey: "shortcutEnabled") as? Bool ?? true
         if let stored = defaults.dictionary(forKey: "shortcut"),
            let code = stored["code"] as? UInt32, let modifiers = stored["modifiers"] as? UInt32,
            let label = stored["label"] as? String {
             shortcut = Shortcut(code: code, modifiers: modifiers, label: label)
         } else { shortcut = .standard }
+    }
+
+    func connect() {
+        guard handler == nil else { return }
         var type = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         let status = InstallEventHandler(GetApplicationEventTarget(), { _, event, context in
             guard let context, let event else { return OSStatus(eventNotHandledErr) }
@@ -88,7 +93,7 @@ struct Shortcut: Equatable {
         }
         enabled = value
         notice = ""
-        UserDefaults.standard.set(value, forKey: "shortcutEnabled")
+        defaults.set(value, forKey: "shortcutEnabled")
     }
 
     func replace(with key: Shortcut) {
@@ -102,7 +107,7 @@ struct Shortcut: Equatable {
         }
         shortcut = key
         notice = ""
-        UserDefaults.standard.set(["code": key.code, "modifiers": key.modifiers, "label": key.label], forKey: "shortcut")
+        defaults.set(["code": key.code, "modifiers": key.modifiers, "label": key.label], forKey: "shortcut")
     }
 
     func invalidate() {

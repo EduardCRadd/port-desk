@@ -49,44 +49,64 @@ struct Selection: Identifiable {
     @Published var loaded = false
     @Published var log = [String]()
     @Published private(set) var lastOutcome: ActionOutcome?
-    private var scanning = false
+    private var activeScan: Task<Void, Never>?
     private var pollTask: Task<Void, Never>?
 
     private(set) var panelVisible = false
     private var previousSamples: [Int32: ResourceSample] = [:]
     @Published private(set) var metrics: [Int32: ProcessMetrics] = [:]
 
-    init() { setPanelVisible(false) }
+    typealias Snapshot = ([Listener], [Int32: ResourceSample])
+    private let discover: @Sendable (Bool) async throws -> Snapshot
+    private let wait: @Sendable (Duration) async throws -> Void
+
+    init(discover: @escaping @Sendable (Bool) async throws -> Snapshot = Desk.liveSnapshot,
+         wait: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }) {
+        self.discover = discover
+        self.wait = wait
+    }
 
     func setPanelVisible(_ visible: Bool) {
         if pollTask != nil && visible == panelVisible { return }
         panelVisible = visible
         let previous = pollTask
         previous?.cancel()
+        let previousScan = activeScan
+        previousScan?.cancel()
         previousSamples.removeAll()
         pollTask = Task {
             await previous?.value
+            await previousScan?.value
             while !Task.isCancelled {
                 await refresh()
                 let interval = UserDefaults.standard.object(forKey: "refreshSeconds") as? Int ?? 2
-                do { try await Task.sleep(for: PollSchedule(visible: visible, interval: interval).delay) }
+                do { try await wait(PollSchedule(visible: visible, interval: interval).delay) }
                 catch { return }
             }
         }
     }
 
     func refresh() async {
-        guard !scanning else { return }
-        scanning = true
-        defer { scanning = false }
+        if let activeScan { await activeScan.value; return }
+        let task = Task {
+            defer { activeScan = nil }
+            await updateRows()
+        }
+        activeScan = task
+        await task.value
+    }
+
+    private func updateRows() async {
         do {
             let visible = panelVisible
-            let (result, samples) = try await Self.discover(visible: visible)
+            let (result, samples) = try await discover(visible)
             try Task.checkCancellation()
             guard visible == panelVisible else { return }
-            metrics = samples.map { pid, sample in
-                (pid, ProcessMetrics(sample, previous: previousSamples[pid], secondsPerTick: ProcessMetrics.secondsPerTick))
-            }.reduce(into: [:]) { $0[$1.0] = $1.1 }
+            var readings: [Int32: ProcessMetrics] = [:]
+            for (pid, sample) in samples {
+                readings[pid] = ProcessMetrics(sample, previous: previousSamples[pid], secondsPerTick: ProcessMetrics.secondsPerTick)
+            }
+            metrics = readings
             previousSamples = samples
             rows = result
             scanError = ""
@@ -96,7 +116,7 @@ struct Selection: Identifiable {
         } catch { scanError = error.localizedDescription }
     }
 
-    @concurrent private static func discover(visible: Bool) async throws -> ([Listener], [Int32: ResourceSample]) {
+    @concurrent static func liveSnapshot(visible: Bool) async throws -> ([Listener], [Int32: ResourceSample]) {
         let rows = try scan(previewSchemes: visible)
         var samples: [Int32: ResourceSample] = [:]
         if visible {

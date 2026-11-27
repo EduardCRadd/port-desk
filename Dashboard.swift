@@ -10,11 +10,22 @@ struct Dashboard: View {
     @AppStorage("showAll") private var showAll = false
     @State private var expanded: PortRow.ID?
     @State private var hovered: PortRow.ID?
+    @State private var keyboardNavigating = false
+    @State private var menuRow: PortRow.ID?
     @State private var selection: PortRow.ID?
     @State private var review: Selection?
     @State private var bulk: [Listener]?
     @State private var history = false
     @FocusState private var listFocused: Bool
+
+    init(desk: Desk, expanded: PortRow.ID? = nil, hovered: PortRow.ID? = nil,
+         showSettings: @escaping () -> Void, didOpen: @escaping () -> Void) {
+        self.desk = desk
+        _expanded = State(initialValue: expanded)
+        _hovered = State(initialValue: hovered)
+        self.showSettings = showSettings
+        self.didOpen = didOpen
+    }
 
     private var rows: [PortRow] { PortRow.list(desk.rows, showAll: showAll) }
 
@@ -59,6 +70,7 @@ struct Dashboard: View {
         }
         .preferredColorScheme(.dark)
         .onChange(of: desk.keyboardRequest) { _, _ in
+            keyboardNavigating = true
             listFocused = true
             if !rows.contains(where: { $0.id == selection }) { selection = rows.first?.id }
         }
@@ -72,16 +84,16 @@ struct Dashboard: View {
     private var ports: some View {
         let displayed = rows
         let hasDetail = displayed.contains { $0.id == expanded }
-        let listHeight = min(416, max(49, displayed.count * 49 + (hasDetail ? 125 : 0)))
+        let listHeight = min(418, max(49, displayed.count * 49 + (hasDetail ? 125 : 0)))
         return VStack(spacing: 0) {
             HStack(spacing: 8) {
-                Text("Ports").font(.headline.bold())
+                Text("Ports").font(.headline)
                 Spacer()
                 Button { Task { await desk.refresh() } } label: { Image(systemName: "arrow.clockwise") }
                     .keyboardShortcut("r").help("Refresh").accessibilityLabel("Refresh")
                 Color.clear.frame(width: 16).accessibilityHidden(true)
-                Toggle("Show all", isOn: $showAll).toggleStyle(.switch).controlSize(.small)
-            }.padding(.horizontal, 12).frame(height: 32)
+                Toggle("Show all", isOn: $showAll).toggleStyle(.switch).controlSize(.mini).font(.system(size: 11))
+            }.padding(.horizontal, 12).frame(height: 31)
             Divider()
             ScrollViewReader { proxy in
                 ScrollView {
@@ -98,6 +110,11 @@ struct Dashboard: View {
             .focusable().focused($listFocused).focusEffectDisabled()
             .onKeyPress(.upArrow) { move(-1); return .handled }
             .onKeyPress(.downArrow) { move(1); return .handled }
+            .onKeyPress(keys: [.return], phases: .down) { key in
+                guard key.modifiers.contains(.control), let selection else { return .ignored }
+                menuRow = selection
+                return .handled
+            }
             .onKeyPress("o") { selectedAction { open($0) } }
             .onKeyPress("t") { selectedAction { terminal($0.listener) } }
             .onKeyPress("k") { selectedAction { confirm(.stop, $0.listener) } }
@@ -117,14 +134,14 @@ struct Dashboard: View {
                     bulk = eligible
                 }.disabled(eligible.isEmpty || desk.busy)
                 Button("Quit") { NSApp.terminate(nil) }.disabled(desk.busy).keyboardShortcut("q")
-            }.padding(.horizontal, 12).frame(height: 29)
+            }.font(.system(size: 11)).foregroundStyle(.secondary).padding(.horizontal, 12).frame(height: 28)
         }.buttonStyle(.plain)
     }
 
     private func portLine(_ item: PortRow) -> some View {
         let row = item.listener
         let metrics = desk.metrics[row.id] ?? ProcessMetrics()
-        let active = hovered == item.id || selection == item.id
+        let active = keyboardNavigating ? selection == item.id : hovered == item.id
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
                 Button { open(item) } label: {
@@ -134,11 +151,11 @@ struct Dashboard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.title).font(.headline).lineLimit(1)
                     HStack(spacing: 6) {
-                        Label(row.terminal == nil ? "Unknown" : "Terminal", systemImage: row.terminal == nil ? "questionmark.square.dashed" : "terminal")
-                        Label(uptime(row), systemImage: "clock")
-                        Label(metrics.cpuText, systemImage: "cpu")
-                        Label(metrics.memoryText, systemImage: "memorychip")
-                        Label(metrics.energy ?? "—", systemImage: "bolt.fill")
+                        metric(row.terminal == nil ? "Unknown" : "Terminal", row.terminal == nil ? "questionmark.square.dashed" : "terminal")
+                        metric(uptime(row), "clock")
+                        metric(metrics.cpuText, "cpu")
+                        metric(metrics.memoryText, "memorychip")
+                        metric(metrics.energy ?? "—", "bolt.fill")
                             .foregroundStyle(metrics.energy == "Low" ? Color.green : Color.secondary)
                     }.labelStyle(.titleAndIcon).font(.caption).foregroundStyle(.secondary)
                 }.frame(maxWidth: .infinity, alignment: .leading)
@@ -158,17 +175,32 @@ struct Dashboard: View {
         }
         .background(active ? Color.primary.opacity(0.055) : .clear)
         .onHover { inside in
-            if inside { hovered = item.id } else if hovered == item.id { hovered = nil }
+            if inside { hovered = item.id; keyboardNavigating = false } else if hovered == item.id { hovered = nil }
         }
-        .contextMenu {
-            if row.manageable {
-                Button("Restart…") { confirm(.restart, row) }.disabled(desk.busy)
-                if let alternate = url(item, alternate: true) {
-                    Button("Open with " + (alternate.scheme?.uppercased() ?? "")) { if NSWorkspace.shared.open(alternate) { didOpen() } }
+        .contextMenu { rowActions(item) }
+        .popover(isPresented: Binding(get: { menuRow == item.id }, set: { if !$0 { menuRow = nil } })) {
+            VStack(alignment: .leading) { rowActions(item) }.padding(8)
+        }
+    }
+
+    @ViewBuilder private func rowActions(_ item: PortRow) -> some View {
+        if item.listener.manageable {
+            Button("Restart…") { menuRow = nil; confirm(.restart, item.listener) }.disabled(desk.busy)
+            if let alternate = url(item, alternate: true) {
+                Button("Open with " + (alternate.scheme?.uppercased() ?? "")) {
+                    menuRow = nil
+                    if NSWorkspace.shared.open(alternate) { didOpen() }
                 }
             }
-            Button("Command History") { history = true }
         }
+        Button("Command History") { menuRow = nil; history = true }
+    }
+
+    private func metric(_ value: String, _ symbol: String) -> some View {
+        HStack(spacing: 2) {
+            Image(systemName: symbol)
+            Text(value)
+        }.fixedSize()
     }
 
     private func icon(_ symbol: String, _ label: String, action: @escaping () -> Void) -> some View {
@@ -215,6 +247,7 @@ struct Dashboard: View {
     }
 
     private func move(_ delta: Int) {
+        keyboardNavigating = true
         let list = rows
         guard !list.isEmpty else { return }
         let current = list.firstIndex { $0.id == selection } ?? (delta > 0 ? -1 : list.count)

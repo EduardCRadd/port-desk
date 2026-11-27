@@ -47,7 +47,8 @@ private final class PortsPanel: NSPanel {
         host.sizingOptions = []
         panel.contentView = host
         resize(host.fittingSize)
-        _ = shortcuts
+        shortcuts.connect()
+        desk.setPanelVisible(false)
     }
 
     private func resize(_ size: CGSize) {
@@ -97,13 +98,9 @@ private final class PortsPanel: NSPanel {
     private func showSettings() {
         hidePanel()
         if preferencesWindow == nil {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 420, height: 418),
-                                  styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            window.isReleasedWhenClosed = false
-            window.title = SettingsTab.general.rawValue
-            window.appearance = NSAppearance(named: .darkAqua)
+            let window = PreferencesWindow(tab: .general)
             window.contentView = NSHostingView(rootView: SettingsWindowContent(shortcuts: shortcuts) { [weak window] title in
-                window?.title = title
+                window?.setHeading(title)
             })
             window.center()
             preferencesWindow = window
