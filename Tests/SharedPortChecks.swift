@@ -2,7 +2,7 @@ import Foundation
 
 /// Exercise two real listeners in the same working directory on different loopback addresses.
 func checkSharedStop() async throws {
-    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    let directory = URL(fileURLWithPath: "/private/tmp", isDirectory: true).appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: directory) }
     let token = UUID().uuidString
@@ -27,6 +27,7 @@ func checkSharedStop() async throws {
     try checkResponse(at: peerURL, expected: token)
     print("Shared Stop released the IPv4 listener and the original IPv6 peer still serves its page.")
 }
+
 /// An HTTP server owned by this check. Never signal a PID discovered by port alone.
 private func startHTTPServer(in directory: URL, host: String, port: Int) throws -> Process {
     let process = Process()
@@ -34,7 +35,7 @@ private func startHTTPServer(in directory: URL, host: String, port: Int) throws 
     process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
     process.arguments = ["python3", "-m", "http.server", String(port), "--bind", host]
     process.standardOutput = FileHandle.nullDevice
-    process.standardError = FileHandle.nullDevice
+    process.standardError = FileHandle.standardError
     try process.run()
     return process
 }
@@ -45,14 +46,19 @@ private func finish(_ process: Process) {
 }
 
 private func findFixture(_ process: Process) throws -> Listener {
-    let deadline = ContinuousClock.now + .seconds(5)
+    let deadline = ContinuousClock.now + .seconds(10)
+    var observation = "PID absent from the listener scan"
     while process.isRunning && ContinuousClock.now < deadline {
-        if let row = try scan().first(where: { $0.id == process.processIdentifier && $0.manageable }) {
-            return row
+        if let row = try scan().first(where: { $0.id == process.processIdentifier }) {
+            if row.manageable { return row }
+            observation = "discovered " + row.name + ", cwd=" + (row.directory ?? "<unavailable>")
+                + ", same user=" + String(row.uid == getuid()) + ", identity=" + String(row.fingerprint != nil)
         }
         Thread.sleep(forTimeInterval: 0.05)
     }
-    throw DeskError("The disposable HTTP server did not become available.")
+    let status = process.isRunning ? observation : "exit status " + String(process.terminationStatus)
+    let invocation = process.arguments?.joined(separator: " ") ?? "HTTP server"
+    throw DeskError("Disposable fixture failed (\(invocation), pid \(process.processIdentifier)): \(status).")
 }
 
 private func checkResponse(at url: URL, expected: String) throws {
