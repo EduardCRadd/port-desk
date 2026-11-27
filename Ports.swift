@@ -1,6 +1,10 @@
 import Darwin
 import Foundation
 
+#if compiler(<6.4.3)
+#error("Install the Swift 6.4.3 release toolchain and relaunch Xcode if it was open during installation.")
+#endif
+
 struct DeskError: LocalizedError {
     let message: String
     init(_ message: String) { self.message = message }

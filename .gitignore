@@ -1,2 +1,7 @@
 /Port Desk.app/
 .DS_Store
+
+# Per-user Xcode state and local build products
+xcuserdata/
+/DerivedData/
+/build/

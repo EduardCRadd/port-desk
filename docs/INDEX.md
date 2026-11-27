@@ -2,7 +2,7 @@
 
 | Area | Document | Update when |
 | --- | --- | --- |
-| Architecture, build, icon, local skills | [Architecture](architecture.md) | Entry points, packaging, prerequisites, skill pins or build checks change |
+| Architecture, Xcode schemes, MCP, build, icon, local skills | [Architecture](architecture.md) | Entry points, packaging, prerequisites, skill pins or build checks change |
 | Presentation and controls | [Dashboard](dashboard.md) | Dashboard navigation, accessibility, visibility or state ownership changes |
 | Listener discovery and process actions | [Listeners and commands](listeners.md) | Classification, URLs, restart suggestions, validation or outcomes change |
 | Contributor workflow | [Documentation workflow](documentation-workflow.md) | Filing conventions or verification practices change |

@@ -6,6 +6,12 @@ Read this before touching: [Architecture and pinned sources](../architecture.md)
 
 Keywords: project tooling, SwiftUI Expert, Swift Concurrency, documentation
 
+## 2026-11-27 — Build and debug with Xcode and Swift 6.4.3
+
+Opening `Tests/Check.swift` on its own produced 23 diagnostics, including missing listener types and parser functions. The script supplied the other source file, but there was no Xcode project defining that compilation unit. Added shared Port Desk and Listener Checks schemes with separate entry points. The terminal script builds the same targets. Both select the Swift 6.4.3 release toolchain and keep macOS 14 as the deployment target.
+
+On an Apple silicon Mac with Xcode 27.2, both schemes built through Apple’s MCP bridge with zero Issue navigator errors. The compiler log identified the installed Swift 6.4.3 toolchain. LLDB stopped at the menu bar scene in a temporary Debug build, and the listener executable passed against its disposable server. Relaunching Xcode after toolchain installation was necessary for the running IDE to detect it. Runtime checks ran on macOS 27.2. See [build and check](../architecture.md#build-and-check) and [Xcode tools for Codex](../architecture.md#xcode-tools-for-codex).
+
 ## 2026-11-27 — Add Swift language and concurrency review guides
 
 Reviewed fourteen candidates against the macOS 14 app, its build settings and the existing skill pins. Added Write Swift for value types, lifetime management and Darwin interop, and Swift Concurrency Pro for reviewing detached tasks and cancellation during polling. The existing concurrency guide remains useful for compiler diagnostics and migrations.

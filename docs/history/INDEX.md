@@ -2,5 +2,5 @@
 
 | System | History | Current guide |
 | --- | --- | --- |
-| Contributor tools | [Project tooling](project-tooling.md) | [Architecture](../architecture.md#project-local-skills) |
+| Contributor tools | [Project tooling](project-tooling.md) | [Architecture and local build](../architecture.md) |
 | Menu bar dashboard | [Dashboard history](dashboard.md) | [Dashboard and interaction](../dashboard.md) |

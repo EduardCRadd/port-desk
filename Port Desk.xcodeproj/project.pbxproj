@@ -1,0 +1,327 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0F91DD6ABAAF6CFC46E78837 /* PortDesk.icon in Resources */ = {isa = PBXBuildFile; fileRef = 58CD9BFDFAE3C7D4E6B3FB34 /* PortDesk.icon */; };
+		2621B40A822AE2FD5A148D63 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FECC946D70EC4B5B61CCFB /* Cocoa.framework */; };
+		28B38EF67ADCBD64B6FC925E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FECC946D70EC4B5B61CCFB /* Cocoa.framework */; };
+		48D8516E35D193B5AA6F106D /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
+		5841591EBFA3798F241450F8 /* Check.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E34961E63777D064B012FC9 /* Check.swift */; };
+		BAFD7B33D929459713F2205C /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
+		E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AA3726A5ACD7267478071 /* PortDesk.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		03FECC946D70EC4B5B61CCFB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		1D80DC98A6920C972F44498E /* Listener Checks */ = {isa = PBXFileReference; includeInIndex = 0; path = "Listener Checks"; sourceTree = BUILT_PRODUCTS_DIR; };
+		58CD9BFDFAE3C7D4E6B3FB34 /* PortDesk.icon */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.iconcomposer.icon; path = PortDesk.icon; sourceTree = "<group>"; };
+		6A68043E5338058C0BD72409 /* Port Desk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Port Desk.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6E34961E63777D064B012FC9 /* Check.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Check.swift; sourceTree = "<group>"; };
+		9475BD1994D464F98F9C9529 /* Ports.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Ports.swift; sourceTree = "<group>"; };
+		A99AA3726A5ACD7267478071 /* PortDesk.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortDesk.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D7D2C87325A046B93C3AD1A8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2621B40A822AE2FD5A148D63 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E92590324FABB308AD02EAFD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				28B38EF67ADCBD64B6FC925E /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0B11F38D245906C1F9BA15EE /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				6E34961E63777D064B012FC9 /* Check.swift */,
+			);
+			name = Tests;
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		5C3EA287B7185894B69731D9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D2234802FDF5B2D8564067E8 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		70A692FEC31E3213C31DCA2D /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				58CD9BFDFAE3C7D4E6B3FB34 /* PortDesk.icon */,
+			);
+			name = Assets;
+			path = Assets;
+			sourceTree = "<group>";
+		};
+		881250C7557121B2F9506EDD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6A68043E5338058C0BD72409 /* Port Desk.app */,
+				1D80DC98A6920C972F44498E /* Listener Checks */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D2234802FDF5B2D8564067E8 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				03FECC946D70EC4B5B61CCFB /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
+		DA9F8F6AC352C2AA9BA47A35 = {
+			isa = PBXGroup;
+			children = (
+				881250C7557121B2F9506EDD /* Products */,
+				5C3EA287B7185894B69731D9 /* Frameworks */,
+				9475BD1994D464F98F9C9529 /* Ports.swift */,
+				A99AA3726A5ACD7267478071 /* PortDesk.swift */,
+				0B11F38D245906C1F9BA15EE /* Tests */,
+				70A692FEC31E3213C31DCA2D /* Assets */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0E346B6E6100AFAFB2CA7D6F /* Listener Checks */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0E7F57F1F4F065F8C7B57631 /* Build configuration list for PBXNativeTarget "Listener Checks" */;
+			buildPhases = (
+				909B2A2E5ECE18AB3FC03112 /* Sources */,
+				D7D2C87325A046B93C3AD1A8 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Listener Checks";
+			productName = "Listener Checks";
+			productReference = 1D80DC98A6920C972F44498E /* Listener Checks */;
+			productType = "com.apple.product-type.tool";
+		};
+		B4B7606D2112FABF65373A4E /* Port Desk */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AD43C4BB91D20F1D2F403FAB /* Build configuration list for PBXNativeTarget "Port Desk" */;
+			buildPhases = (
+				44F1DD3463623447AFA29B1D /* Sources */,
+				E92590324FABB308AD02EAFD /* Frameworks */,
+				B24BFC18F822B7AA6CD16128 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Port Desk";
+			productName = "Port Desk";
+			productReference = 6A68043E5338058C0BD72409 /* Port Desk.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FE9834AED4DB5BD66CEFCFFA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 2720;
+				LastUpgradeCheck = 2720;
+			};
+			buildConfigurationList = F786863B5EB80586F21323F5 /* Build configuration list for PBXProject "Port Desk" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = DA9F8F6AC352C2AA9BA47A35;
+			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 881250C7557121B2F9506EDD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B4B7606D2112FABF65373A4E /* Port Desk */,
+				0E346B6E6100AFAFB2CA7D6F /* Listener Checks */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B24BFC18F822B7AA6CD16128 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0F91DD6ABAAF6CFC46E78837 /* PortDesk.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		44F1DD3463623447AFA29B1D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BAFD7B33D929459713F2205C /* Ports.swift in Sources */,
+				E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		909B2A2E5ECE18AB3FC03112 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				48D8516E35D193B5AA6F106D /* Ports.swift in Sources */,
+				5841591EBFA3798F241450F8 /* Check.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		112E9B53981BAE68090BB7E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		1C6FCA3856EC58CEE32A94B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = PortDesk;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 5;
+				ENABLE_APP_SANDBOX = NO;
+				EXECUTABLE_NAME = PortDesk;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = local.portdesk.dashboard;
+			};
+			name = Release;
+		};
+		2881C56DF71230A87632D40E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TOOLCHAINS = org.swift.643202611191a;
+			};
+			name = Debug;
+		};
+		BE6DA7A58EB1FE7D9D3A2AB7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		E95F264CDA6B776358F0B419 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = PortDesk;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 5;
+				ENABLE_APP_SANDBOX = NO;
+				EXECUTABLE_NAME = PortDesk;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = local.portdesk.dashboard;
+			};
+			name = Debug;
+		};
+		FBD95C3ECEEA12248D37B2E8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TOOLCHAINS = org.swift.643202611191a;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0E7F57F1F4F065F8C7B57631 /* Build configuration list for PBXNativeTarget "Listener Checks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE6DA7A58EB1FE7D9D3A2AB7 /* Release */,
+				112E9B53981BAE68090BB7E8 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AD43C4BB91D20F1D2F403FAB /* Build configuration list for PBXNativeTarget "Port Desk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1C6FCA3856EC58CEE32A94B6 /* Release */,
+				E95F264CDA6B776358F0B419 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F786863B5EB80586F21323F5 /* Build configuration list for PBXProject "Port Desk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2881C56DF71230A87632D40E /* Debug */,
+				FBD95C3ECEEA12248D37B2E8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = FE9834AED4DB5BD66CEFCFFA /* Project object */;
+}
