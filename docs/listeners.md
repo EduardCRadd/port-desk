@@ -31,3 +31,5 @@ The [build guide](architecture.md#build-and-check) runs [controlled Swift Testin
 The [listener history](history/listeners.md) records changes to these checks and outcomes.
 
 The shared-port fixture serves a temporary page from one directory on an ephemeral port with distinct IPv4 and IPv6 loopback listeners. It verifies the selected IPv4 listener stops, checks the surviving IPv6 PID and endpoint in the result, and requests the page again from that peer.
+
+The same fixture then restarts a fresh IPv4 listener using the reviewed command in a disposable shell. It verifies the replacement PID owns the selected endpoint, checks that the original IPv6 peer kept its identity, and fetches both pages. Exercise the interactive Terminal handoff separately on a desktop Mac.

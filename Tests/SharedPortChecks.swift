@@ -1,7 +1,7 @@
 import Foundation
 
 /// Exercise two real listeners in the same working directory on different loopback addresses.
-func checkSharedStop() async throws {
+func checkSharedPortActions() async throws {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -26,6 +26,7 @@ func checkSharedStop() async throws {
     }
     try checkResponse(at: peerURL, expected: token)
     print("Shared Stop released the IPv4 listener and the original IPv6 peer still serves its page.")
+    try await checkSharedRestart(in: directory, port: port, peer: peer, token: token)
 }
 /// An HTTP server owned by this check. Never signal a PID discovered by port alone.
 private func startHTTPServer(in directory: URL, host: String, port: Int) throws -> Process {
@@ -68,4 +69,37 @@ private func checkResponse(at url: URL, expected: String) throws {
     guard request.terminationStatus == 0 && String(decoding: data, as: UTF8.self) == expected else {
         throw DeskError("The disposable listener did not serve its fixture at " + url.absoluteString)
     }
+}
+
+/// Use the production workflow with a test-owned shell in place of the interactive Terminal window.
+private func checkSharedRestart(in directory: URL, port: Int, peer: Listener, token: String) async throws {
+    let original = try startHTTPServer(in: directory, host: "127.0.0.1", port: port)
+    defer { finish(original) }
+    let selected = try findFixture(original)
+    let command = restartSuggestion(selected)
+    let replacement = Process()
+    defer { if replacement.isRunning { finish(replacement) } }
+
+    var workflow = ActionWorkflow.live
+    workflow.launch = { folder, reviewedCommand in
+        replacement.currentDirectoryURL = URL(fileURLWithPath: folder)
+        replacement.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        replacement.arguments = ["-c", "exec " + reviewedCommand]
+        replacement.standardOutput = FileHandle.nullDevice
+        replacement.standardError = FileHandle.nullDevice
+        try replacement.run()
+    }
+    let outcome = await workflow.perform(.restart, on: selected, command: command)
+    guard case let .restarted(returned, missing) = outcome,
+          returned == selected.endpoints, missing.isEmpty, replacement.isRunning else {
+        throw DeskError("Shared-port restart did not restore the IPv4 endpoint: " + outcome.summary)
+    }
+    let observed = try findFixture(replacement)
+    guard observed.endpoints == selected.endpoints,
+          try scan().contains(where: { $0.id == peer.id && $0.fingerprint == peer.fingerprint && $0.endpoints == peer.endpoints }) else {
+        throw DeskError("The restarted listener or the original IPv6 peer changed unexpectedly.")
+    }
+    try checkResponse(at: URL(string: "http://127.0.0.1:\(port)/")!, expected: token)
+    try checkResponse(at: URL(string: "http://[::1]:\(port)/")!, expected: token)
+    print("Shared Restart restored the IPv4 endpoint; both servers serve their expected page.")
 }
