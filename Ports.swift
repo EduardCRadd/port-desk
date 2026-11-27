@@ -170,20 +170,9 @@ func parseListeners(_ data: Data) -> [Listener] {
 }
 
 func scan(previewSchemes: Bool = false) throws -> [Listener] {
-    let task = Process(), output = Pipe()
-    task.executableURL = URL(fileURLWithPath: "/usr/sbin/lsof")
-    task.arguments = ["-nP", "-iTCP", "-sTCP:LISTEN", "-F0pcuftn"]
-    task.standardOutput = output
-    let errors = Pipe()
-    task.standardError = errors
-    try task.run()
-    let data = output.fileHandleForReading.readDataToEndOfFile()
-    let diagnostic = String(decoding: errors.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
-    task.waitUntilExit()
-    guard task.terminationStatus == 0 || (task.terminationStatus == 1 && data.isEmpty && diagnostic.isEmpty) else {
-        throw DeskError("Couldn’t read listening ports. " + diagnostic)
-    }
-    return parseListeners(data).map { listener in
+    let data = try ListenerDiscovery().read()
+    return try parseListeners(data).map { listener in
+        try Task.checkCancellation()
         var row = listener
         let info = processInfo(row.id)
         row.fingerprint = identity(info)

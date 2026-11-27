@@ -52,11 +52,13 @@ struct Selection: Identifiable {
     func setPanelVisible(_ visible: Bool) {
         guard visible else {
             pollTask?.cancel()
-            pollTask = nil
             return
         }
-        guard pollTask == nil else { return }
+        if let pollTask, !pollTask.isCancelled { return }
+        let previous = pollTask
         pollTask = Task {
+            // A rapid reopen waits for the previous cancelled scan to relinquish the refresh slot.
+            await previous?.value
             while !Task.isCancelled {
                 await refresh()
                 do { try await Task.sleep(for: .seconds(4)) } catch { return }
@@ -69,10 +71,18 @@ struct Selection: Identifiable {
         scanning = true
         defer { scanning = false }
         do {
-            rows = try await Task.detached { try scan(previewSchemes: true) }.value
+            let result = try await Self.discover()
+            try Task.checkCancellation()
+            rows = result
             scanError = ""
             loaded = true
+        } catch is CancellationError {
+            // Closing the panel cancels its poll without displaying a scan error.
         } catch { scanError = error.localizedDescription }
+    }
+
+    @concurrent private static func discover() async throws -> [Listener] {
+        try scan(previewSchemes: true)
     }
 
     func append(_ line: String) {

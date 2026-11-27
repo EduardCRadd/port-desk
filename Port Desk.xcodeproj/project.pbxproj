@@ -10,14 +10,17 @@
 		0F91DD6ABAAF6CFC46E78837 /* PortDesk.icon in Resources */ = {isa = PBXBuildFile; fileRef = 58CD9BFDFAE3C7D4E6B3FB34 /* PortDesk.icon */; };
 		2621B40A822AE2FD5A148D63 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FECC946D70EC4B5B61CCFB /* Cocoa.framework */; };
 		28B38EF67ADCBD64B6FC925E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FECC946D70EC4B5B61CCFB /* Cocoa.framework */; };
+		FF14E4DFA2C71F5DC04130A6 /* ListenerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */; };
 		48D8516E35D193B5AA6F106D /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
 		5841591EBFA3798F241450F8 /* Check.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E34961E63777D064B012FC9 /* Check.swift */; };
+		109099083F1D24028A8675D6 /* ListenerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */; };
 		BAFD7B33D929459713F2205C /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
 		E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AA3726A5ACD7267478071 /* PortDesk.swift */; };
 		358388ED0C303927C41DFC24 /* ActionWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */; };
 		A08C9C71BBC4EC5A5956BE4B /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */; };
 		9854EE50B30C66BB28903F32 /* ActionWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */; };
 		64B4E857855ADA37A65D761A /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */; };
+		F3FD65411AAED7566EAF9740 /* ListenerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */; };
 		6FB463C3F49C897D8824E125 /* Ports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9475BD1994D464F98F9C9529 /* Ports.swift */; };
 		E629C1789D02F444AAA48FA5 /* ActionWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */; };
 		779C591CCDFB43D3E1D1F2AD /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */; };
@@ -30,6 +33,7 @@
 		58CD9BFDFAE3C7D4E6B3FB34 /* PortDesk.icon */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.iconcomposer.icon; path = PortDesk.icon; sourceTree = "<group>"; };
 		6A68043E5338058C0BD72409 /* Port Desk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Port Desk.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E34961E63777D064B012FC9 /* Check.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Check.swift; sourceTree = "<group>"; };
+		F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListenerDiscovery.swift; sourceTree = "<group>"; };
 		9475BD1994D464F98F9C9529 /* Ports.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Ports.swift; sourceTree = "<group>"; };
 		A99AA3726A5ACD7267478071 /* PortDesk.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PortDesk.swift; sourceTree = "<group>"; };
 		1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionWorkflow.swift; sourceTree = "<group>"; };
@@ -108,6 +112,7 @@
 			children = (
 				881250C7557121B2F9506EDD /* Products */,
 				5C3EA287B7185894B69731D9 /* Frameworks */,
+				F1D53182A3F3008883826B04 /* ListenerDiscovery.swift */,
 				9475BD1994D464F98F9C9529 /* Ports.swift */,
 				1219314CA4903A5A3D5B996A /* ActionWorkflow.swift */,
 				C5D76A7335371BF47397B2E8 /* TerminalLauncher.swift */,
@@ -215,6 +220,7 @@
 			files = (
 				358388ED0C303927C41DFC24 /* ActionWorkflow.swift in Sources */,
 				A08C9C71BBC4EC5A5956BE4B /* TerminalLauncher.swift in Sources */,
+				109099083F1D24028A8675D6 /* ListenerDiscovery.swift in Sources */,
 				BAFD7B33D929459713F2205C /* Ports.swift in Sources */,
 				E8318BF49E616BD3EA67E4AF /* PortDesk.swift in Sources */,
 			);
@@ -226,6 +232,7 @@
 			files = (
 				9854EE50B30C66BB28903F32 /* ActionWorkflow.swift in Sources */,
 				64B4E857855ADA37A65D761A /* TerminalLauncher.swift in Sources */,
+				FF14E4DFA2C71F5DC04130A6 /* ListenerDiscovery.swift in Sources */,
 				48D8516E35D193B5AA6F106D /* Ports.swift in Sources */,
 				5841591EBFA3798F241450F8 /* Check.swift in Sources */,
 			);
@@ -235,6 +242,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F3FD65411AAED7566EAF9740 /* ListenerDiscovery.swift in Sources */,
 				6FB463C3F49C897D8824E125 /* Ports.swift in Sources */,
 				E629C1789D02F444AAA48FA5 /* ActionWorkflow.swift in Sources */,
 				779C591CCDFB43D3E1D1F2AD /* TerminalLauncher.swift in Sources */,

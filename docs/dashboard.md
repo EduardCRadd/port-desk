@@ -22,7 +22,7 @@ Click outside to dismiss the panel. Choose **Quit Port Desk** in the panel to en
 
 The panel uses a frosted dark backdrop and terminal-green links. Reduce Transparency switches to a solid background. Keep the symbol, hover help and accessible name together when changing row controls. Confirmation controls retain text.
 
-`PortDeskApp` owns the main-actor `Desk` shared across openings. `TerminalBackdrop` observes the panel window’s occlusion state because SwiftUI can retain menu bar content between openings. When visible, `setPanelVisible` starts one task that refreshes immediately, then sleeps four seconds between scans. Hiding the panel cancels the poll loop. A scan already in progress can finish. **Refresh** or Command-R requests an immediate scan.
+`PortDeskApp` owns the main-actor `Desk` shared across openings. `TerminalBackdrop` observes the panel window’s occlusion state because SwiftUI can retain menu bar content between openings. When visible, `setPanelVisible` starts one task that refreshes immediately, then sleeps four seconds between scans. Hiding the panel cancels the poll loop and its active discovery process. Reopening waits for the cancelled poll to finish before refreshing. **Refresh** or Command-R requests an immediate scan.
 
 Confirmation starts a separate action task. It continues through release checks, Terminal launch and port verification after the panel closes. Keep the session model outside the panel content so a later opening can display its results.
 

@@ -6,6 +6,12 @@ Read this before touching: [Dashboard guide](../dashboard.md), [presentation and
 
 Keywords: menu bar, disclosure, compact row, polling, accessibility, command history
 
+## 2026-11-27 — Bound listener discovery and cancel panel polling
+
+Sequential reads from lsof could deadlock when its diagnostics filled a pipe. An unresponsive child also held the refresh slot indefinitely. The [discovery runner](../../ListenerDiscovery.swift) now drains both streams, bounds output and run time, and cleans up its child on errors. Closing the panel cancels its poll. The independently confirmed Stop or Restart continues.
+
+The [listener checks](../../Tests/Check.swift) exercise full pipes, empty and unsuccessful exits, timeout, cancellation, process cleanup, recovery and real loopback discovery. See [the lifecycle guide](../dashboard.md#appearance-and-lifecycle).
+
 ## 2026-11-24 — Move the full dashboard into the menu bar
 
 **Outcome.** Implemented change.
