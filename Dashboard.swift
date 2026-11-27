@@ -75,7 +75,8 @@ struct Dashboard: View {
             if !rows.contains(where: { $0.id == selection }) { selection = rows.first?.id }
         }
         .onChange(of: desk.busy) { wasBusy, busy in
-            if wasBusy, !busy, let message = desk.lastOutcome?.summary, NSApp.keyWindow != nil {
+            let message = desk.lastOutcome?.summary ?? desk.actionMessage
+            if wasBusy, !busy, !message.isEmpty, NSApp.keyWindow != nil {
                 AccessibilityNotification.Announcement(message).post()
             }
         }
@@ -100,7 +101,10 @@ struct Dashboard: View {
                     LazyVStack(spacing: 0) {
                         if displayed.isEmpty {
                             Text(desk.loaded ? "No listening servers" : "Reading ports…")
-                                .foregroundStyle(.secondary).frame(height: 48)
+                                .foregroundStyle(.secondary).frame(maxWidth: .infinity).frame(height: 48)
+                                .contentShape(Rectangle()).contextMenu {
+                                    Button("Command History") { history = true }
+                                }
                         }
                         ForEach(displayed) { item in portLine(item).id(item.id) }
                     }

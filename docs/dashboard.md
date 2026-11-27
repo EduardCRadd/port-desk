@@ -12,7 +12,7 @@ Click the plug and server count in the menu bar, or use the global shortcut. The
 
 Click a row or its chevron for PID, command, directory, port, uptime, CPU, memory and estimated energy. Hover over a development row to open its preview, reveal the original Terminal tab or review stopping the process. Terminal attribution requires a verifiable controlling terminal and ancestry. Unknown sessions cannot be revealed. The preview context menu on the row offers the alternate HTTP scheme.
 
-Right-click a row, or select it with the arrow keys and press Control-Return, for Command History or a development server for Restart. History keeps the most recent 120 entries and can be copied. Restart lets you review or edit a launch command. Escape cancels an action review. Command-Return confirms it. Kill all presents the captured targets and all their ports. Confirmed actions continue after dismissal. The result identifies any remaining listener, a partial restart or an individual failure.
+Right-click a row, or select it with the arrow keys and press Control-Return, for Command History or a development server for Restart. When the list is empty, its message also offers Command History in the contextual menu. History keeps the most recent 120 entries and can be copied. Restart lets you review or edit a launch command. Escape cancels an action review. Command-Return confirms it. Kill all presents the captured targets and all their ports. Confirmed actions continue after dismissal. The result identifies any remaining listener, a partial restart or an individual failure.
 
 ## Appearance and lifecycle
 
