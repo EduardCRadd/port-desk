@@ -39,6 +39,8 @@ The [script](../build.sh) builds the shared schemes with temporary Derived Data.
 
 The listener check launches `python3 -m http.server` through `PATH`. To verify your development interpreter, run `python3 --version` and `./build.sh --check` from the same terminal. Python 3.15.2 has been verified. When launched from Finder, Xcode uses its own environment and may select a different Python. The app itself has no Python dependency.
 
+From a temporary clean clone, run `./scripts/verify.sh` for the pull request checks. It verifies the selected Xcode and Swift versions, the Release bundle signature and deployment target, the listener fixture, and the final Git status. The GitHub Actions source build uses the same script on an Apple silicon runner. For active development, use the individual build commands above.
+
 ## Xcode tools for Codex
 
 Open the project in Xcode. In **Xcode → Settings → Intelligence → Model Context Protocol**, choose **While Xcode is Open** for external agents. Register Apple's bridge once per Codex installation:

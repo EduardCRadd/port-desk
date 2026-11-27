@@ -6,6 +6,10 @@ Read this before touching: [Architecture and pinned sources](../architecture.md)
 
 Keywords: project tooling, SwiftUI Expert, Swift Concurrency, documentation
 
+## 2026-11-27 — Verify source builds on pull requests
+
+The shared verification script checks a fresh checkout locally and on GitHub Actions. The workflow selects Xcode 27.2 and installs the signed Swift.org 6.4.3 release. It checks the compiled deployment target for every architecture. A macOS 14 runtime check still needs a machine running that release.
+
 ## 2026-11-27 — Exercise listener checks with the development Python
 
 The fixture used an absolute path to Apple's Python, so a shell upgrade had no effect on the check. The executable now resolves `python3` through its launch environment. With Python 3.15.2 selected, the listener checks passed, including restart command reconstruction, graceful termination and port release. See [build and check](../architecture.md#build-and-check) for interpreter selection in Terminal and Xcode.
