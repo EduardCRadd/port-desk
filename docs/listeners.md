@@ -12,6 +12,8 @@ Keywords: lsof, PID, IPv4, IPv6, localhost, HTTPS, SIGTERM, restart, Terminal
 
 Preview links use one endpoint per port. An unshared wildcard uses `localhost`. A shared port uses the selected listener's numeric address or its family-specific loopback for a wildcard. For example, an explicit IPv6 loopback on port 3000 yields `http://[::1]:3000`. Port 443 and recognized TLS launch flags select HTTPS. The context menu offers the other scheme.
 
+[ListenerDiscovery](../ListenerDiscovery.swift) owns each lsof child and reads standard output and error together. A scan has a five-second deadline and a 16 MiB output limit. On timeout or cancellation it kills and reaps its own child. An unsuccessful scan throws, so a process action cannot treat missing data as a released port. Exit code 1 with empty output and diagnostics is lsof’s normal empty-list result.
+
 ## Stop and restart
 
 A confirmation captures a listener snapshot. The dashboard submits the reviewed command and snapshot to `ActionWorkflow.perform`, records its progress, and displays its outcome. On execution, the workflow rechecks the current user, PID fingerprint and complete port set, records the attempted signal, then sends SIGTERM. Release checks detect a supervisor or other replacement that claims an old port. A rejected stale selection can be retried from a refreshed row.
