@@ -34,7 +34,20 @@ private func startHTTPServer(in directory: URL, host: String, port: Int) throws 
     let process = Process()
     process.currentDirectoryURL = directory
     process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-    process.arguments = ["python3", "-m", "http.server", String(port), "--bind", host]
+    if host == "::1" {
+        // A numeric IPv6 peer has no reason to reverse-resolve its hostname before listening.
+        let serveIPv6 = """
+            import http.server, socket, socketserver, sys
+            class LoopbackServer(socketserver.TCPServer):
+                address_family = socket.AF_INET6
+            with LoopbackServer(("::1", int(sys.argv[1])), http.server.SimpleHTTPRequestHandler) as server:
+                print("IPv6 fixture listening on", server.server_address, file=sys.stderr, flush=True)
+                server.serve_forever()
+            """
+        process.arguments = ["python3", "-c", serveIPv6, String(port)]
+    } else {
+        process.arguments = ["python3", "-m", "http.server", String(port), "--bind", host]
+    }
     process.standardOutput = FileHandle.nullDevice
     process.standardError = FileHandle.standardError
     try process.run()
@@ -66,7 +79,7 @@ private func checkResponse(at url: URL, expected: String) throws {
     let request = Process()
     let output = Pipe()
     request.executableURL = URL(fileURLWithPath: "/usr/bin/curl")
-    request.arguments = ["--noproxy", "*", "--fail", "--silent", "--show-error",
+    request.arguments = ["-q", "--noproxy", "*", "--fail", "--silent", "--show-error",
                          "--max-time", "3", url.absoluteString]
     request.standardOutput = output
     try request.run()
