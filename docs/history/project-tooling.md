@@ -6,6 +6,18 @@ Read this before touching: [Architecture and pinned sources](../architecture.md)
 
 Keywords: project tooling, SwiftUI Expert, Swift Concurrency, documentation
 
+## 2026-11-27 — Add Swift language and concurrency review guides
+
+Reviewed fourteen candidates against the macOS 14 app, its build settings and the existing skill pins. Added Write Swift for value types, lifetime management and Darwin interop, and Swift Concurrency Pro for reviewing detached tasks and cancellation during polling. The existing concurrency guide remains useful for compiler diagnostics and migrations.
+
+The [skill table](../architecture.md#project-local-skills) records both upstream revisions. The Concurrency Pro installation includes its Codex entry point, references and interface assets. Both installations include the upstream MIT license.
+
+## 2026-11-27 — Extend Swift contributor guidance
+
+The dashboard bridges SwiftUI and AppKit, presents changing listener rows and exposes process actions to keyboard and VoiceOver users. Added five project-local skills covering AppKit bridging, SwiftUI accessibility audits, performance diagnosis, Swift Testing and Swift API design. The architecture guide maps each skill to its use and upstream revision.
+
+Verified all 41 new files, including the five MIT licenses, against the pinned Git blobs. The existing listener check command remains the verification entry point for process actions. See [project-local skills](../architecture.md#project-local-skills).
+
 ## 2026-11-27 — Establish a reproducible Git baseline
 
 The project previously built from a working directory without Git history. The baseline tracks the app and listener sources, executable build script, icon artwork and symlink, documentation, and both licensed skill copies. Git ignores the generated root app bundle and Finder metadata.

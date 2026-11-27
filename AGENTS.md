@@ -1,6 +1,6 @@
 # Port Desk working guide
 
-Start at the [documentation index](docs/INDEX.md). Port Desk is a native macOS app compiled directly with Swift 6. Read the owning guide, source, and checks before making changes. Use the [local skills](docs/architecture.md#project-local-skills) for relevant SwiftUI and concurrency work. Keep the macOS 14 deployment target in mind when using newer examples.
+Start at the [documentation index](docs/INDEX.md). Port Desk is a native macOS app compiled directly with Swift 6. Read the owning guide, source, and checks before making changes. Choose the [local Swift skill](docs/architecture.md#project-local-skills) that fits the task. Keep the macOS 14 deployment target in mind when using newer examples.
 
 Exercise process actions against disposable local servers. Use the [build and verification commands](docs/architecture.md#build-and-check) when changing the app or its packaging. For bugs, read relevant history and active investigations before diagnosing.
 
