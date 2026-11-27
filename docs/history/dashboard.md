@@ -6,6 +6,20 @@ Read this before touching: [Dashboard guide](../dashboard.md), [presentation and
 
 Keywords: menu bar, disclosure, compact row, polling, accessibility, command history
 
+## 2026-11-27 — Expose action results and shorten first layout
+
+**Outcome.** Completed actions leave their summary visible below collapsed history. The menu panel keeps the complete result for later inspection and requests a spoken announcement when it is the visible key window. Shared-port action names include the PID, the editable launch command has a name, and Command-Return confirms a reviewed action.
+
+**Reason and change.** A developer previously had to expand history to learn which endpoints remained after a Stop or returned after a Restart. Both scroll views also built every listener row up front. The dashboard now reads the same outcome as the command log, and lays out listener rows lazily.
+
+**Verification.** On arm64 macOS 27.2, a temporary host using the dashboard and session model exercised Escape in a review, the named command field, a keyboard-confirmed Restart through Terminal and a Stop of that disposable server. The new PID listened on the original port; both results were accessible with history collapsed. A separate check using the final Stop workflow hid the panel through its visibility callback during an action. The fixture stopped, its port was released and the model retained the summary in history. Across nine seconds hidden and nine seconds visible, the model published zero and three routine scan results respectively.
+
+In a debug host rendering 160 synthetic project rows, three runs took 470–512 ms to lay out the original list and 27–31 ms for the lazy list. Twelve jumps across the full list took longer with lazy layout (roughly 0.35 s total versus 0.06 s) as each destination materialized. The host also exercised both Reduce Transparency environment values and verified the AppKit effect view hid for the opaque appearance.
+
+**Limits.** These are local layout timings, not display-frame or energy measurements. Accessibility inspection verified the controls and result text. Spoken output was not independently captured. The release build and strict signature check passed with the Swift 6.4.3 toolchain and macOS 14 target; the interactive checks ran on macOS 27.2.
+
+**References.** [Panel behavior and manual checks](../dashboard.md) · [Action outcome](../../ActionWorkflow.swift) · [Dashboard](../../PortDesk.swift)
+
 ## 2026-11-27 — Bound listener discovery and cancel panel polling
 
 Sequential reads from lsof could deadlock when its diagnostics filled a pipe. An unresponsive child also held the refresh slot indefinitely. The [discovery runner](../../ListenerDiscovery.swift) now drains both streams, bounds output and run time, and cleans up its child on errors. Closing the panel cancels its poll. The independently confirmed Stop or Restart continues.

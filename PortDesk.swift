@@ -1,3 +1,4 @@
+import Accessibility
 import AppKit
 import SwiftUI
 
@@ -128,6 +129,7 @@ struct Review: View {
                     .textSelection(.enabled)
                 TextField("Enter the server’s launch command", text: Binding(get: { command }, set: { edited = true; command = $0 }))
                     .textFieldStyle(.roundedBorder).font(.system(.body, design: .monospaced))
+                    .accessibilityLabel("Start command")
             }
             HStack {
                 Spacer()
@@ -135,6 +137,7 @@ struct Review: View {
                 Button(selection.action.rawValue, systemImage: selection.action.symbol) { run(command) }
                     .labelStyle(.titleAndIcon)
                     .buttonStyle(ServerActionStyle(action: selection.action))
+                    .keyboardShortcut(.return, modifiers: .command)
                     .disabled(selection.action == .restart && command.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -248,13 +251,14 @@ struct Dashboard: View {
 
     private func actionButton(_ action: Action, row: Listener) -> some View {
         let description = "\(action.rawValue) \(row.project) on \(row.portText)"
+        let accessibleName = row.sharedPorts.isEmpty ? description : description + ", PID " + String(row.id)
         return Button(action.rawValue, systemImage: action.symbol) {
             review = Selection(row: row, action: action)
         }
         .labelStyle(.iconOnly)
         .buttonStyle(ServerActionStyle(action: action, compact: true))
         .help(description + "…")
-        .accessibilityLabel(description)
+        .accessibilityLabel(accessibleName)
     }
 
     private var list: some View {
@@ -273,20 +277,24 @@ struct Dashboard: View {
             }.padding(.bottom, 10)
             if !desk.scanError.isEmpty { Text(desk.scanError).foregroundStyle(.orange).textSelection(.enabled) }
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
+                LazyVStack(alignment: .leading, spacing: 0) {
                     Text("Development servers").font(.headline).foregroundStyle(.secondary).padding(.vertical, 8)
                     if previews.isEmpty {
                         Text(desk.loaded ? "No development servers listening." : "Reading listening ports…")
                             .foregroundStyle(.secondary).padding(.vertical, 14)
                     }
-                    ForEach(previews) { row in Divider(); rowView(row) }
+                    ForEach(previews) { row in
+                        rowView(row).overlay(alignment: .top) { Divider() }
+                    }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
             Divider()
             DisclosureGroup(isExpanded: $showOthers) {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        ForEach(others) { row in rowView(row); Divider() }
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(others) { row in
+                            rowView(row).overlay(alignment: .bottom) { Divider() }
+                        }
                         if others.isEmpty { Text("No other listeners.").foregroundStyle(.secondary) }
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }.frame(height: others.isEmpty ? 24 : 110)
@@ -307,6 +315,13 @@ struct Dashboard: View {
                     if desk.busy { ProgressView().controlSize(.small).accessibilityLabel("Server action in progress") }
                 }
             }.padding(.vertical, 6)
+            if !showHistory, !desk.busy, let summary = desk.lastOutcome?.summary {
+                Text(summary)
+                    .font(.callout)
+                    .lineLimit(3)
+                    .help(summary)
+                    .padding(.bottom, 6)
+            }
             Divider()
             HStack {
                 Spacer()
@@ -351,6 +366,12 @@ struct Dashboard: View {
                 TerminalBackdrop(desk: desk)
                 Color(white: 0.085).opacity(reduceTransparency ? 1 : 0.16)
             }.ignoresSafeArea().allowsHitTesting(false)
+        }
+        .onChange(of: desk.busy) { wasBusy, isBusy in
+            if wasBusy, !isBusy, let summary = desk.lastOutcome?.summary,
+               NSApp.keyWindow?.occlusionState.contains(.visible) == true {
+                AccessibilityNotification.Announcement(summary).post()
+            }
         }
         .preferredColorScheme(.dark)
     }
