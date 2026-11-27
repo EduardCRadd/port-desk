@@ -37,6 +37,8 @@ codesign --verify --strict 'Port Desk.app'
 
 The [script](../build.sh) builds the shared schemes with temporary Derived Data. Its default action copies the signed Release bundle into the checkout. Run it in a temporary checkout to verify without overwriting a running app bundle. The listener check uses a disposable loopback HTTP server and signals its own fixture. Its assertions cover parsing, URL selection, quoting, discovery, a stale selection, graceful stop and port release. For interaction and accessibility, use the [dashboard checks](dashboard.md#manual-checks).
 
+The listener check launches `python3 -m http.server` through `PATH`. To verify your development interpreter, run `python3 --version` and `./build.sh --check` from the same terminal. Python 3.15.2 has been verified. When launched from Finder, Xcode uses its own environment and may select a different Python. The app itself has no Python dependency.
+
 ## Xcode tools for Codex
 
 Open the project in Xcode. In **Xcode → Settings → Intelligence → Model Context Protocol**, choose **While Xcode is Open** for external agents. Register Apple's bridge once per Codex installation:

@@ -6,6 +6,10 @@ Read this before touching: [Architecture and pinned sources](../architecture.md)
 
 Keywords: project tooling, SwiftUI Expert, Swift Concurrency, documentation
 
+## 2026-11-27 — Exercise listener checks with the development Python
+
+The fixture used an absolute path to Apple's Python, so a shell upgrade had no effect on the check. The executable now resolves `python3` through its launch environment. With Python 3.15.2 selected, the listener checks passed, including restart command reconstruction, graceful termination and port release. See [build and check](../architecture.md#build-and-check) for interpreter selection in Terminal and Xcode.
+
 ## 2026-11-27 — Build and debug with Xcode and Swift 6.4.3
 
 Opening `Tests/Check.swift` on its own produced 23 diagnostics, including missing listener types and parser functions. The script supplied the other source file, but there was no Xcode project defining that compilation unit. Added shared Port Desk and Listener Checks schemes with separate entry points. The terminal script builds the same targets. Both select the Swift 6.4.3 release toolchain and keep macOS 14 as the deployment target.
