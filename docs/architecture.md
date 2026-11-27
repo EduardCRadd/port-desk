@@ -14,6 +14,10 @@ The [Xcode project](../Port%20Desk.xcodeproj/project.pbxproj) owns the sources, 
 
 The app target generates the bundle metadata, including `LSUIElement` for menu-bar-only launch, and signs locally. Xcode compiles the [Icon Composer asset](../Assets/PortDesk.icon/icon.json) into the catalog and fallback ICNS. The [PNG artwork](../Assets/PortDesk.png) remains available for reuse.
 
+## Changing an action
+
+Keep decisions about signaling, waiting and relaunching in [ActionWorkflow.swift](../ActionWorkflow.swift). Add a controlled case to [ActionWorkflowTests.swift](../Tests/ActionWorkflowTests.swift) that asserts both the result and any signal or launch it permits. When a shared bind rule changes, pair its accepted and refused forms with the parser in [RestartBinding.swift](../RestartBinding.swift). The dashboard displays the workflow's summary and records it in session history. Check the collapsed result and the full log when changing its wording.
+
 ## Build and check
 
 Use Xcode 27.2 and the [Swift 6.4.3 release toolchain for macOS](https://www.swift.org/install/macos/). Choose the macOS package installer and install for the current user. If Xcode was open during installation, quit and relaunch it so its build service discovers the new toolchain. Both schemes use Swift 6 language mode and a macOS 14 deployment target. With Xcode in its standard location, check the installed compiler using:
