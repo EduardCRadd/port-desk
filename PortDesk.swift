@@ -50,19 +50,25 @@ struct Selection: Identifiable {
     private var scanning = false
     private var pollTask: Task<Void, Never>?
 
+    private(set) var panelVisible = false
+    private var previousSamples: [Int32: ResourceSample] = [:]
+    @Published private(set) var metrics: [Int32: ProcessMetrics] = [:]
+
+    init() { setPanelVisible(false) }
+
     func setPanelVisible(_ visible: Bool) {
-        guard visible else {
-            pollTask?.cancel()
-            return
-        }
-        if let pollTask, !pollTask.isCancelled { return }
+        if pollTask != nil && visible == panelVisible { return }
+        panelVisible = visible
         let previous = pollTask
+        previous?.cancel()
+        previousSamples.removeAll()
         pollTask = Task {
-            // A rapid reopen waits for the previous cancelled scan to relinquish the refresh slot.
             await previous?.value
             while !Task.isCancelled {
                 await refresh()
-                do { try await Task.sleep(for: .seconds(4)) } catch { return }
+                let interval = UserDefaults.standard.object(forKey: "refreshSeconds") as? Int ?? 2
+                do { try await Task.sleep(for: PollSchedule(visible: visible, interval: interval).delay) }
+                catch { return }
             }
         }
     }
@@ -72,8 +78,14 @@ struct Selection: Identifiable {
         scanning = true
         defer { scanning = false }
         do {
-            let result = try await Self.discover()
+            let visible = panelVisible
+            let (result, samples) = try await Self.discover(visible: visible)
             try Task.checkCancellation()
+            guard visible == panelVisible else { return }
+            metrics = samples.map { pid, sample in
+                (pid, ProcessMetrics(sample, previous: previousSamples[pid], secondsPerTick: ProcessMetrics.secondsPerTick))
+            }.reduce(into: [:]) { $0[$1.0] = $1.1 }
+            previousSamples = samples
             rows = result
             scanError = ""
             loaded = true
@@ -82,8 +94,16 @@ struct Selection: Identifiable {
         } catch { scanError = error.localizedDescription }
     }
 
-    @concurrent private static func discover() async throws -> [Listener] {
-        try scan(previewSchemes: true)
+    @concurrent private static func discover(visible: Bool) async throws -> ([Listener], [Int32: ResourceSample]) {
+        let rows = try scan(previewSchemes: visible)
+        var samples: [Int32: ResourceSample] = [:]
+        if visible {
+            for row in rows {
+                try Task.checkCancellation()
+                samples[row.id] = ResourceSample.read(row)
+            }
+        }
+        return (rows, samples)
     }
 
     func append(_ line: String) {
@@ -193,8 +213,11 @@ struct TerminalBackdrop: NSViewRepresentable {
     @StateObject private var desk = Desk()
 
     var body: some Scene {
-        MenuBarExtra("Port Desk", systemImage: "terminal") {
+        MenuBarExtra {
             Dashboard(desk: desk)
+        } label: {
+            Image(systemName: "powerplug.fill")
+            Text(String(desk.rows.filter(\.manageable).count))
         }.menuBarExtraStyle(.window)
     }
 }

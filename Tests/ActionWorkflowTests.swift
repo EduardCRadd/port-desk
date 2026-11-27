@@ -207,3 +207,13 @@ func unknownSocketOverlapLeavesSelectedListenerRunning(_ address: String) async 
     #expect(Set(rows.map(\.listener.id)).count == 2)
     #expect(rows.first?.listener.ports == [3000, 3001])
 }
+
+@Test func sampleIntervalsAndIdentity() {
+    let id = Identity(uid: getuid(), seconds: 5, micros: 2)
+    let first = ResourceSample(identity: id, timestamp: 5, cpuTicks: 7, wakeups: 4, footprint: 5000000)
+    let last = ResourceSample(identity: id, timestamp: 15, cpuTicks: 9, wakeups: 5, footprint: 6000000)
+    #expect(ProcessMetrics(last, previous: first, secondsPerTick: 1).cpu == 20)
+    #expect(ProcessMetrics(last, previous: nil, secondsPerTick: 1).energy == nil)
+    #expect(PollSchedule(visible: false, interval: 2).delay == .seconds(30))
+    #expect(PollSchedule(visible: true, interval: 2).delay == .seconds(2))
+}
