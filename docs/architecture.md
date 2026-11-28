@@ -2,13 +2,13 @@
 
 Purpose: Locate the code, build tools and project-local guidance that produce Port Desk.
 
-Read this before touching: [App entry point](../PortDesk.swift), [process inspection](../Ports.swift), [build script](../build.sh), [listener checks](../Tests/Check.swift).
+Read this before touching: [App entry point](../MenuController.swift), [process inspection](../Ports.swift), [build script](../build.sh), [listener checks](../Tests/Check.swift).
 
 Keywords: architecture, Swift 6, macOS 14, SwiftUI, AppKit, build, signing, icon, agent skills
 
 ## Ownership
 
-Port Desk is a native macOS utility. `PortDeskApp` owns the session’s single `Desk` and presents the dashboard in a SwiftUI `MenuBarExtra` with the window style. SwiftUI owns presentation, while AppKit supplies the frosted backdrop, panel visibility notifications and clipboard. [Dashboard](dashboard.md) covers its controls and state. [Listeners and commands](listeners.md) covers the Darwin process APIs, local TCP discovery, validation and Terminal integration.
+Port Desk is a native macOS utility. [MenuController](../MenuController.swift) owns one Desk, status item and anchored panel. It hosts the [SwiftUI dashboard](../Dashboard.swift) and the separate [settings window](../Preferences.swift). [GlobalShortcut](../GlobalShortcut.swift) registers the selected key combination. [ProcessMetrics](../ProcessMetrics.swift) converts Darwin counters into readings shared by every row for a process. [Dashboard](dashboard.md) covers its controls and state. [Listeners and commands](listeners.md) covers the Darwin process APIs, local TCP discovery, validation and Terminal integration.
 
 The [Xcode project](../Port%20Desk.xcodeproj/project.pbxproj) owns the sources, build settings and packaging for both shared schemes. The app and the Listener Checks executable share discovery, [the action workflow](../ActionWorkflow.swift), and [the Terminal launcher](../TerminalLauncher.swift). Each executable has one `@main` entry point. The **Action Tests** bundle exercises the same sources with controlled observations, signals, timing, and launches. Press ⌘U in either shared scheme to run its Swift Testing cases.
 

@@ -15,6 +15,7 @@ private func server(_ pid: Int32, ports: [Int]) -> Listener {
 private actor Fixture {
     var snapshots: [[Listener]]
     var signals: [Int32] = []
+    var deliveries: [StopSignal] = []
     var commands: [String] = []
     var history: [String] = []
     let signalResult: SignalResult
@@ -27,8 +28,9 @@ private actor Fixture {
     }
 
     func read() -> [Listener] { snapshots.count > 1 ? snapshots.removeFirst() : snapshots.first ?? [] }
-    func signal(_ row: Listener) -> SignalResult {
+    func signal(_ row: Listener, _ delivery: StopSignal) -> SignalResult {
         signals.append(row.id)
+        deliveries.append(delivery)
         return signalResult
     }
     func launch(_ directory: String, _ command: String) throws {
@@ -37,17 +39,17 @@ private actor Fixture {
     }
     func log(_ line: String) { history.append(line) }
     nonisolated var workflow: ActionWorkflow {
-        ActionWorkflow(listeners: { await self.read() }, signal: { await self.signal($0) },
+        ActionWorkflow(listeners: { await self.read() }, signal: { await self.signal($0, $1) },
                        launch: { try await self.launch($0, $1) }, sleep: { _ in })
     }
 }
 
-@Test func changedProcessRejectsStaleSelection() async {
+@Test(arguments: [Action.stop, .forceStop]) func changedProcessRejectsStaleSelection(_ action: Action) async {
     let selected = server(123, ports: [3000])
     var replacement = selected
     replacement.fingerprint = Identity(uid: getuid(), seconds: 999, micros: 0)
     let fixture = Fixture([[replacement]])
-    let result = await fixture.workflow.perform(.stop, on: selected)
+    let result = await fixture.workflow.perform(action, on: selected)
     guard case .failed = result else { Issue.record("Expected stale selection"); return }
     #expect(await fixture.signals.isEmpty)
 }
@@ -77,13 +79,16 @@ private actor Fixture {
     #expect(result == .restarted(returned: replacement.endpoints, missing: selected.endpoints.subtracting(replacement.endpoints)))
 }
 
-@Test func stopListsSurvivingPeersOnceSelectedServerLeaves() async {
+@Test(arguments: [Action.stop, .forceStop]) func stopListsSurvivingPeersOnceSelectedServerLeaves(_ action: Action) async {
     let selected = server(123, ports: [3000])
     var peer = server(124, ports: [])
     let endpoint = Endpoint("[::1]:3000", family: "IPv6")!
     peer.endpoints = [endpoint, Endpoint("[::1]:3001", family: "IPv6")!]
     let fixture = Fixture([[selected, peer], [selected, peer], [peer]])
-    let result = await fixture.workflow.perform(.stop, on: selected)
+    let result = await fixture.workflow.perform(action, on: selected) { await fixture.log($0) }
+    let delivery: StopSignal = action == .forceStop ? .force : .terminate
+    #expect(await fixture.deliveries == [delivery])
+    #expect(await fixture.history == ["$ kill -\(delivery.rawValue) 123"])
     #expect(result == .stopped(remaining: [.init(id: peer.id, endpoint: endpoint)]))
     #expect(result.summary.contains("[::1]:3000 (PID 124)"))
     #expect(await fixture.signals == [123])
@@ -187,10 +192,10 @@ func unknownSocketOverlapLeavesSelectedListenerRunning(_ address: String) async 
     let peer = ipv6Peer()
     let fixture = Fixture([[selected, peer], [peer], [peer]])
     var workflow = fixture.workflow
-    workflow.signal = { row in
+    workflow.signal = { row, delivery in
         do { try Data(#"{"scripts":{"dev":"node custom.js"}}"#.utf8).write(to: manifest) }
         catch { return .failed(error.localizedDescription) }
-        return await fixture.signal(row)
+        return await fixture.signal(row, delivery)
     }
     let result = await workflow.perform(.restart, on: selected, command: "npm run dev -- --port 3000 --hostname 127.0.0.1")
     #expect(result.summary.contains("Selected server stopped. Restart blocked"))

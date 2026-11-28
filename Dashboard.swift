@@ -10,18 +10,29 @@ struct Dashboard: View {
     @AppStorage("showAll") private var showAll = false
     @State private var expanded: PortRow.ID?
     @State private var hovered: PortRow.ID?
+    @State private var keyboardNavigating = false
+    @State private var menuRow: PortRow.ID?
     @State private var selection: PortRow.ID?
     @State private var review: Selection?
     @State private var bulk: [Listener]?
     @State private var history = false
     @FocusState private var listFocused: Bool
 
+    init(desk: Desk, expanded: PortRow.ID? = nil, hovered: PortRow.ID? = nil,
+         showSettings: @escaping () -> Void, didOpen: @escaping () -> Void) {
+        self.desk = desk
+        _expanded = State(initialValue: expanded)
+        _hovered = State(initialValue: hovered)
+        self.showSettings = showSettings
+        self.didOpen = didOpen
+    }
+
     private var rows: [PortRow] { PortRow.list(desk.rows, showAll: showAll) }
 
     var body: some View {
         Group {
             if let review {
-                Review(selection: review, cancel: { self.review = nil }) { command in
+                RestartReview(selection: review, cancel: { self.review = nil }) { command in
                     self.review = nil
                     Task { await desk.perform(review, command: command) }
                 }.id(review.id).padding().frame(height: 300)
@@ -59,11 +70,13 @@ struct Dashboard: View {
         }
         .preferredColorScheme(.dark)
         .onChange(of: desk.keyboardRequest) { _, _ in
+            keyboardNavigating = true
             listFocused = true
             if !rows.contains(where: { $0.id == selection }) { selection = rows.first?.id }
         }
         .onChange(of: desk.busy) { wasBusy, busy in
-            if wasBusy, !busy, let message = desk.lastOutcome?.summary, NSApp.keyWindow != nil {
+            let message = desk.lastOutcome?.summary ?? desk.actionMessage
+            if wasBusy, !busy, !message.isEmpty, NSApp.keyWindow != nil {
                 AccessibilityNotification.Announcement(message).post()
             }
         }
@@ -72,35 +85,46 @@ struct Dashboard: View {
     private var ports: some View {
         let displayed = rows
         let hasDetail = displayed.contains { $0.id == expanded }
-        let listHeight = min(416, max(49, displayed.count * 49 + (hasDetail ? 125 : 0)))
+        let listHeight = min(418, max(49, displayed.count * 49 + (hasDetail ? 125 : 0)))
         return VStack(spacing: 0) {
             HStack(spacing: 8) {
-                Text("Ports").font(.headline.bold())
+                Text("Ports").font(.headline)
                 Spacer()
                 Button { Task { await desk.refresh() } } label: { Image(systemName: "arrow.clockwise") }
                     .keyboardShortcut("r").help("Refresh").accessibilityLabel("Refresh")
                 Color.clear.frame(width: 16).accessibilityHidden(true)
-                Toggle("Show all", isOn: $showAll).toggleStyle(.switch).controlSize(.small)
-            }.padding(.horizontal, 12).frame(height: 32)
+                Toggle("Show all", isOn: $showAll).toggleStyle(.switch).controlSize(.mini).font(.system(size: 11))
+            }.padding(.horizontal, 12).frame(height: 31)
             Divider()
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 0) {
                         if displayed.isEmpty {
                             Text(desk.loaded ? "No listening servers" : "Reading ports…")
-                                .foregroundStyle(.secondary).frame(height: 48)
+                                .foregroundStyle(.secondary).frame(maxWidth: .infinity).frame(height: 48)
+                                .contentShape(Rectangle()).contextMenu {
+                                    Button("Command History") { desk.cancelStop(); history = true }
+                                }
                         }
                         ForEach(displayed) { item in portLine(item).id(item.id) }
                     }
                 }
-                .onChange(of: selection) { _, id in if let id { proxy.scrollTo(id) } }
+                .onChange(of: selection) { _, id in
+                    if let pending = desk.pendingStop, pending.id != id { desk.cancelStop() }
+                    if let id { proxy.scrollTo(id) }
+                }
             }.frame(height: CGFloat(listHeight))
             .focusable().focused($listFocused).focusEffectDisabled()
             .onKeyPress(.upArrow) { move(-1); return .handled }
             .onKeyPress(.downArrow) { move(1); return .handled }
+            .onKeyPress(keys: [.return], phases: .down) { key in
+                guard key.modifiers.contains(.control), let selection else { return .ignored }
+                menuRow = selection
+                return .handled
+            }
             .onKeyPress("o") { selectedAction { open($0) } }
             .onKeyPress("t") { selectedAction { terminal($0.listener) } }
-            .onKeyPress("k") { selectedAction { confirm(.stop, $0.listener) } }
+            .onKeyPress("k") { selectedAction { armStop($0) } }
             if !desk.actionMessage.isEmpty {
                 ScrollView { Text(desk.actionMessage).font(.caption).textSelection(.enabled) }.frame(maxHeight: 56)
             }
@@ -114,17 +138,19 @@ struct Dashboard: View {
                 Spacer()
                 let eligible = desk.rows.filter(\.manageable)
                 Button("Kill all (" + String(eligible.count) + ")", systemImage: "xmark.octagon") {
+                    desk.cancelStop()
                     bulk = eligible
                 }.disabled(eligible.isEmpty || desk.busy)
                 Button("Quit") { NSApp.terminate(nil) }.disabled(desk.busy).keyboardShortcut("q")
-            }.padding(.horizontal, 12).frame(height: 29)
+            }.font(.system(size: 11)).foregroundStyle(.secondary).padding(.horizontal, 12).frame(height: 28)
         }.buttonStyle(.plain)
     }
 
     private func portLine(_ item: PortRow) -> some View {
         let row = item.listener
         let metrics = desk.metrics[row.id] ?? ProcessMetrics()
-        let active = hovered == item.id || selection == item.id
+        let pending = desk.pendingStop.flatMap { $0.id == item.id ? $0 : nil }
+        let active = keyboardNavigating ? selection == item.id : hovered == item.id
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
                 Button { open(item) } label: {
@@ -134,19 +160,21 @@ struct Dashboard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.title).font(.headline).lineLimit(1)
                     HStack(spacing: 6) {
-                        Label(row.terminal == nil ? "Unknown" : "Terminal", systemImage: row.terminal == nil ? "questionmark.square.dashed" : "terminal")
-                        Label(uptime(row), systemImage: "clock")
-                        Label(metrics.cpuText, systemImage: "cpu")
-                        Label(metrics.memoryText, systemImage: "memorychip")
-                        Label(metrics.energy ?? "—", systemImage: "bolt.fill")
+                        metric(row.terminal == nil ? "Unknown" : "Terminal", row.terminal == nil ? "questionmark.square.dashed" : "terminal")
+                        metric(uptime(row), "clock")
+                        metric(metrics.cpuText, "cpu")
+                        metric(metrics.memoryText, "memorychip")
+                        metric(metrics.energy ?? "—", "bolt.fill")
                             .foregroundStyle(metrics.energy == "Low" ? Color.green : Color.secondary)
                     }.labelStyle(.titleAndIcon).font(.caption).foregroundStyle(.secondary)
                 }.frame(maxWidth: .infinity, alignment: .leading)
-                if active && row.manageable {
+                if let pending {
+                    inlineStop(pending)
+                } else if active && row.manageable {
                     icon("arrow.up.right.square", "Open " + (url(item)?.absoluteString ?? item.title)) { open(item) }
                     icon("terminal", "Open the Terminal tab running this app") { terminal(row) }
                         .disabled(row.terminal == nil)
-                    icon("xmark.octagon", "Kill this process") { confirm(.stop, row) }.disabled(desk.busy)
+                    icon("xmark.octagon", "Kill this process") { armStop(item) }.disabled(desk.busy)
                 }
                 icon(expanded == item.id ? "chevron.down" : "chevron.right", "Details for \(item.title), PID \(row.id)") {
                     toggle(item)
@@ -158,17 +186,32 @@ struct Dashboard: View {
         }
         .background(active ? Color.primary.opacity(0.055) : .clear)
         .onHover { inside in
-            if inside { hovered = item.id } else if hovered == item.id { hovered = nil }
+            if inside { hovered = item.id; keyboardNavigating = false } else if hovered == item.id { hovered = nil }
         }
-        .contextMenu {
-            if row.manageable {
-                Button("Restart…") { confirm(.restart, row) }.disabled(desk.busy)
-                if let alternate = url(item, alternate: true) {
-                    Button("Open with " + (alternate.scheme?.uppercased() ?? "")) { if NSWorkspace.shared.open(alternate) { didOpen() } }
+        .contextMenu { rowActions(item) }
+        .popover(isPresented: Binding(get: { menuRow == item.id }, set: { if !$0 { menuRow = nil } })) {
+            VStack(alignment: .leading) { rowActions(item) }.padding(8)
+        }
+    }
+
+    @ViewBuilder private func rowActions(_ item: PortRow) -> some View {
+        if item.listener.manageable {
+            Button("Restart…") { menuRow = nil; desk.cancelStop(); review = Selection(row: item.listener, action: .restart) }.disabled(desk.busy)
+            if let alternate = url(item, alternate: true) {
+                Button("Open with " + (alternate.scheme?.uppercased() ?? "")) {
+                    menuRow = nil
+                    if NSWorkspace.shared.open(alternate) { didOpen() }
                 }
             }
-            Button("Command History") { history = true }
         }
+        Button("Command History") { menuRow = nil; desk.cancelStop(); history = true }
+    }
+
+    private func metric(_ value: String, _ symbol: String) -> some View {
+        HStack(spacing: 2) {
+            Image(systemName: symbol)
+            Text(value).truncationMode(.tail)
+        }.lineLimit(1)
     }
 
     private func icon(_ symbol: String, _ label: String, action: @escaping () -> Void) -> some View {
@@ -203,7 +246,9 @@ struct Dashboard: View {
 
     private func uptime(_ row: Listener) -> String {
         guard let start = row.fingerprint?.seconds else { return "—" }
-        let minutes = max(0, Int(Date().timeIntervalSince1970 - Double(start)) / 60)
+        let seconds = max(0, Int(Date().timeIntervalSince1970 - Double(start)))
+        if seconds < 60 { return "\(seconds)s" }
+        let minutes = seconds / 60
         if minutes >= 1440 { return "\(minutes / 1440)d \(minutes / 60 % 24)h" }
         return minutes >= 60 ? "\(minutes / 60)h \(minutes % 60)m" : "\(minutes)m"
     }
@@ -215,6 +260,7 @@ struct Dashboard: View {
     }
 
     private func move(_ delta: Int) {
+        keyboardNavigating = true
         let list = rows
         guard !list.isEmpty else { return }
         let current = list.firstIndex { $0.id == selection } ?? (delta > 0 ? -1 : list.count)
@@ -244,9 +290,43 @@ struct Dashboard: View {
         }
     }
 
-    private func confirm(_ action: Action, _ row: Listener) {
-        guard row.manageable, !desk.busy else { return }
-        review = Selection(row: row, action: action)
+    private func armStop(_ item: PortRow) {
+        guard item.listener.manageable, !desk.busy else { return }
+        selection = item.id
+        desk.reviewStop(item)
+        listFocused = true
+    }
+
+    private func inlineStop(_ item: PortRow) -> some View {
+        let target = "\(item.title), PID \(item.listener.id), ports \(item.listener.portText)"
+        return HStack(spacing: 6) {
+            Button {
+                submitStop(.stop, item)
+            } label: {
+                Text("Kill").frame(width: 36, height: 20)
+                    .background(.red, in: RoundedRectangle(cornerRadius: 5))
+            }
+            .keyboardShortcut(.return, modifiers: .command)
+            .help("Stop " + target + " (SIGTERM)")
+            .accessibilityLabel("Stop " + target)
+            Button {
+                submitStop(.forceStop, item)
+            } label: {
+                Text("Force").frame(width: 50, height: 20)
+                    .background(.secondary.opacity(0.22), in: RoundedRectangle(cornerRadius: 5))
+            }
+            .help("Force quit " + target + " immediately (SIGKILL)")
+            .accessibilityLabel("Force quit " + target + " immediately")
+            Button { desk.cancelStop() } label: {
+                Image(systemName: "xmark").frame(width: 14, height: 22)
+            }
+            .keyboardShortcut(.cancelAction)
+            .help("Cancel").accessibilityLabel("Cancel stopping " + item.title)
+        }.font(.system(size: 11, weight: .semibold)).fixedSize().disabled(desk.busy)
+    }
+
+    private func submitStop(_ action: Action, _ item: PortRow) {
+        Task { await desk.confirmStop(action, for: item.id) }
     }
 
     private var historyView: some View {

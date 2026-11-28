@@ -22,6 +22,7 @@ build_info=$(xcrun vtool -show-build "$bundle/Contents/MacOS/$executable")
 printf '%s\n' "$build_info" | awk '$1 == "minos" { count++; if ($2 != "14.0") bad++ } END { exit (!count || bad) }'
 
 ./build.sh --check
+./scripts/check-dashboard.sh
 status=$(git status --porcelain --untracked-files=all)
 if [ -n "$status" ]; then
     printf 'Verification requires a clean checkout:\n%s\n' "$status" >&2

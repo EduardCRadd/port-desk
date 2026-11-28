@@ -6,6 +6,20 @@ Read this before touching: [Dashboard guide](../dashboard.md), [presentation and
 
 Keywords: menu bar, disclosure, compact row, polling, accessibility, command history
 
+## 2026-11-28 — Keep single-server stop controls in the port row
+
+The Stop review used to replace the list. The selected row now keeps its metrics and chevron while offering graceful Kill, immediate Force and cancel. Both signals use the captured listener identity and endpoint checks. The original terminal menu bar symbol is back beside the server count. The [dashboard fixture](../../Tests/DashboardChecks.swift) checks the one-row confirmation geometry and exercises cancellation and Force on a disposable listener.
+
+## 2026-11-27 — Show one row per port and add dashboard settings
+
+The former fixed dashboard grouped all ports under a PID and exposed Restart beside every development row. The panel now follows the reference’s per-port layout, with a full process snapshot behind each row. Expanding a port shows its process details. Hover exposes browser, Terminal and reviewed Stop actions. Restart and the session history moved to the contextual menu. Control-Return opens the same actions for a keyboard selection.
+
+A closed panel now refreshes the count of development servers every 30 seconds. Visible resource samples use a separate cadence. Settings stores the display and shortcut preferences and reads the actual login service status.
+
+On arm64 macOS 27.2 the fixture renderer produced seven panel states and three settings panes. Compact and expanded panels measured 470 × 159 and 470 × 284 points. Settings measured 420 × 448 points. Visual inspection led to trailing alignment for switches and values, a centered settings title, and adjusted footer typography. The controlled-clock check exercised closed discovery, visible sampling and dismissal. A real bulk action stopped its selected disposable process and rejected a stale capture. A separate desktop probe opened and dismissed the actual status panel, restored a saved shortcut, observed an exclusive-registration conflict, released the combination and dispatched a Carbon hotkey event to the panel handler. The source build targets macOS 14. Live desktop material, native tooltip bubbles and spoken output are separate from the fixture captures.
+
+[Panel guide](../dashboard.md) · [Dashboard checks](../../Tests/DashboardChecks.swift)
+
 ## 2026-11-27 — Expose action results and shorten first layout
 
 **Outcome.** Completed actions leave their summary visible below collapsed history. The menu panel keeps the complete result for later inspection and requests a spoken announcement when it is the visible key window. Shared-port action names include the PID, the editable launch command has a name, and Command-Return confirms a reviewed action.

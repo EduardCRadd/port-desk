@@ -4,6 +4,6 @@ Install Xcode 27.2 and the [Swift 6.4.3 toolchain](docs/architecture.md#build-an
 
 From a fresh checkout, `./build.sh` produces the signed **Port Desk.app** in the project directory. Run `./build.sh --check` for the same listener checks from Terminal.
 
-Launch **Port Desk.app** in Finder, then click the terminal icon in the macOS menu bar. The panel lists the TCP listeners visible to your account. Open a development port in your browser to identify the preview, then choose **Stop** or **Restart** to review its command. Hover over a row action for its name. Expand **Command history** to see the commands and results, or **Other listeners** to inspect read-only ports.
+Launch **Port Desk.app** in Finder and click the terminal icon and server count in the menu bar. Select a port to open its preview, or expand the row for process details and live readings. Hover for Terminal and the inline Kill and Force controls. Open the row’s contextual menu for Restart and Command History. Settings controls launch at login, the global shortcut (⌥⌘P by default) and the live refresh interval.
 
 See the [dashboard guide](docs/dashboard.md) for the controls, [build and verification](docs/architecture.md#build-and-check) for the local build, or the [documentation index](docs/INDEX.md) to make a change.
