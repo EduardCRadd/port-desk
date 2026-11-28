@@ -96,6 +96,12 @@ private actor FixtureDiscovery {
                 .defaultAppStorage(defaults).background(Color(nsColor: .windowBackgroundColor))
             try await render(view, width: 470, title: nil, to: folder.appendingPathComponent(name + ".png"))
         }
+        defaults.set(false, forKey: "showAll")
+        desk.rows = [rows[0].listener]
+        desk.reviewStop(rows[0])
+        try await render(Dashboard(desk: desk, showSettings: {}, didOpen: {}).defaultAppStorage(defaults),
+                         width: 470, title: nil, to: folder.appendingPathComponent("08-inline-stop.png"))
+        desk.cancelStop()
         let keys = GlobalShortcut(defaults: defaults) {}
         for tab in SettingsTab.allCases {
             let view = Preferences(tab: .constant(tab), shortcuts: keys).defaultAppStorage(defaults)
@@ -125,10 +131,24 @@ private actor FixtureDiscovery {
             precondition(error.message.contains("session changed"))
         }
 
+        let forceTarget = try findFixture(second)
+        let forceRow = PortRow.list([forceTarget], showAll: false)[0]
+        desk.reviewStop(forceRow)
+        desk.cancelStop()
+        let before = desk.log
+        await desk.confirmStop(.forceStop, for: forceRow.id)
+        precondition(second.isRunning && desk.log == before)
+        desk.reviewStop(forceRow)
+        await desk.confirmStop(.forceStop, for: forceRow.id)
+        guard case .stopped = desk.lastOutcome else { throw DeskError("Force did not stop the fixture.") }
+        second.waitUntilExit()
+        precondition(second.terminationReason == .uncaughtSignal && second.terminationStatus == SIGKILL)
+        precondition(desk.log.contains("$ kill -KILL " + String(forceTarget.id)))
+
         desk.setPanelVisible(false)
         try await until { await clock.delays.count == 5 }
         precondition(desk.metrics.isEmpty)
-        print("Verified hidden and visible polling, resource baselines and ten rendered dashboard/settings states.")
+        print("Verified hidden and visible polling, resource baselines and inline Force and cancel, and eleven rendered dashboard/settings states.")
     }
 
     @MainActor private static func render<V: View>(_ view: V, width: CGFloat, title: String?, to file: URL) async throws {
@@ -154,6 +174,7 @@ private actor FixtureDiscovery {
         let expectedHeight: CGFloat
         switch file.deletingPathExtension().lastPathComponent {
         case "02-show-all": expectedHeight = 479
+        case "08-inline-stop": expectedHeight = 110
         case "03-first-hover": expectedHeight = 159
         default: expectedHeight = title == nil ? 284 : 448
         }

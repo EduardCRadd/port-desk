@@ -3,6 +3,7 @@ import Foundation
 
 enum Action: String {
     case stop = "Stop"
+    case forceStop = "Force"
     case restart = "Restart"
 }
 
@@ -35,6 +36,13 @@ enum ActionOutcome: Equatable {
     }
 }
 
+enum StopSignal: String, Sendable {
+    case terminate = "TERM"
+    case force = "KILL"
+
+    var number: Int32 { self == .force ? SIGKILL : SIGTERM }
+}
+
 enum SignalResult {
     case sent
     case stale
@@ -43,16 +51,16 @@ enum SignalResult {
 
 struct ActionWorkflow: Sendable {
     var listeners: @Sendable () async throws -> [Listener]
-    var signal: @Sendable (Listener) async -> SignalResult
+    var signal: @Sendable (Listener, StopSignal) async -> SignalResult
     var launch: @Sendable (String, String) async throws -> Void
     var sleep: @Sendable (Duration) async throws -> Void
 
     static let live = ActionWorkflow(
         listeners: { try scan() },
-        signal: { selected in
+        signal: { selected, signal in
             // Check identity again immediately before the syscall to limit the PID-reuse window.
             guard let expected = selected.fingerprint, identity(processInfo(selected.id)) == expected else { return .stale }
-            guard kill(selected.id, SIGTERM) == 0 else { return .failed(String(cString: strerror(errno))) }
+            guard kill(selected.id, signal.number) == 0 else { return .failed(String(cString: strerror(errno))) }
             return .sent
         },
         launch: { try terminalLaunch(directory: $0, command: $1) },
@@ -85,12 +93,13 @@ struct ActionWorkflow: Sendable {
                 }
             }
 
-            let attempt = await signal(selected)
+            let delivery: StopSignal = action == .forceStop ? .force : .terminate
+            let attempt = await signal(selected, delivery)
             if case .stale = attempt { return .failed(stale) }
-            await record("$ kill -TERM \(selected.id)")
+            await record("$ kill -\(delivery.rawValue) \(selected.id)")
             if case .failed(let error) = attempt { return .failed(error) }
 
-            let afterStop = try await waitForStop(of: selected)
+            let afterStop = try await waitForStop(of: selected, after: delivery)
             let remaining = afterStop.flatMap { row in
                 row.endpoints.filter { selected.ports.contains($0.port) }
                     .map { RemainingListener(id: row.id, endpoint: $0) }
@@ -106,7 +115,7 @@ struct ActionWorkflow: Sendable {
         }
     }
 
-    private func waitForStop(of selected: Listener) async throws -> [Listener] {
+    private func waitForStop(of selected: Listener, after signal: StopSignal) async throws -> [Listener] {
         for attempt in 1...30 {
             let overlapping = try await listeners().filter { !$0.ports.isDisjoint(with: selected.ports) }
             let stillListening = overlapping.contains { row in
@@ -115,7 +124,7 @@ struct ActionWorkflow: Sendable {
             if !stillListening { return overlapping }
             if attempt < 30 { try await sleep(.milliseconds(200)) }
         }
-        throw DeskError("The selected server is still listening after SIGTERM. Check its terminal.")
+        throw DeskError("The selected server is still listening after SIG\(signal.rawValue). Check its terminal.")
     }
 
     private func relaunch(_ selected: Listener, directory: String, command: String, peers: [Listener],

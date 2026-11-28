@@ -4,29 +4,16 @@ import SwiftUI
 
 private let terminalGreen = Color(.sRGB, red: 0, green: 1, blue: 0)
 
-extension Action {
-    var symbol: String { self == .stop ? "stop.fill" : "arrow.counterclockwise" }
-
-    var color: Color {
-        switch self {
-        case .restart: Color(.sRGB, red: 1, green: 208/255, blue: 100/255) // #FFD064
-        case .stop: Color(.sRGB, red: 1, green: 103/255, blue: 100/255) // #FF6764
-        }
-    }
-}
-
-private struct ServerActionStyle: ButtonStyle {
-    let action: Action
-    var compact = false
+private struct RestartButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var enabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(.black)
-            .padding(.horizontal, compact ? 0 : 12)
-            .frame(minWidth: compact ? 30 : nil, minHeight: 28)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 28)
             .background {
-                RoundedRectangle(cornerRadius: 6).fill(action.color)
+                RoundedRectangle(cornerRadius: 6).fill(Color(.sRGB, red: 1, green: 208/255, blue: 100/255))
                     .brightness(configuration.isPressed ? -0.12 : 0)
             }
             .contentShape(Rectangle())
@@ -45,6 +32,7 @@ struct Selection: Identifiable {
     @Published var rows = [Listener]()
     @Published var actionMessage = ""
     @Published var scanError = ""
+    @Published private(set) var pendingStop: PortRow?
     @Published var busy = false
     @Published var loaded = false
     @Published var log = [String]()
@@ -68,6 +56,7 @@ struct Selection: Identifiable {
 
     func setPanelVisible(_ visible: Bool) {
         if pollTask != nil && visible == panelVisible { return }
+        if !visible { pendingStop = nil }
         panelVisible = visible
         let previous = pollTask
         previous?.cancel()
@@ -108,6 +97,10 @@ struct Selection: Identifiable {
             }
             metrics = readings
             previousSamples = samples
+            if let pendingStop, !result.contains(where: {
+                $0.id == pendingStop.listener.id && $0.fingerprint == pendingStop.listener.fingerprint
+                    && $0.manageable && $0.endpoints == pendingStop.listener.endpoints
+            }) { self.pendingStop = nil }
             rows = result
             scanError = ""
             loaded = true
@@ -131,6 +124,19 @@ struct Selection: Identifiable {
     func append(_ line: String) {
         log.append(line)
         if log.count > 120 { log.removeFirst() }
+    }
+
+    func reviewStop(_ item: PortRow) {
+        guard item.listener.manageable, !busy else { return }
+        pendingStop = item
+    }
+
+    func cancelStop() { pendingStop = nil }
+
+    func confirmStop(_ action: Action, for id: PortRow.ID) async {
+        guard action != .restart, !busy, let target = pendingStop, target.id == id else { return }
+        pendingStop = nil
+        await perform(Selection(row: target.listener, action: action), command: "")
     }
 
     func stopAll(_ captured: [Listener]) async {
@@ -166,7 +172,7 @@ struct Selection: Identifiable {
     }
 }
 
-struct Review: View {
+struct RestartReview: View {
     let selection: Selection
     let cancel: () -> Void
     let run: (String) -> Void
@@ -179,29 +185,26 @@ struct Review: View {
             Text("\(selection.action.rawValue) \(row.project)?").font(.title2.bold())
             Text("This stops \(row.name) (PID \(String(row.id))) on \(row.ports.count == 1 ? "port" : "ports") \(row.portText).")
             Text("kill -TERM \(String(row.id))").foregroundStyle(terminalGreen).font(.system(.body, design: .monospaced)).textSelection(.enabled)
-            if selection.action == .restart {
-                Divider()
-                Text("Start command").font(.headline)
-                Text("Terminal runs this command in a new shell after the selected server stops. Shared ports require an explicit bind to the selected address.")
-                    .foregroundStyle(.secondary)
-                Text("cd -- " + quote(row.directory ?? "")).foregroundStyle(terminalGreen).font(.system(.caption, design: .monospaced))
-                    .textSelection(.enabled)
-                TextField("Enter the server’s launch command", text: Binding(get: { command }, set: { edited = true; command = $0 }))
-                    .textFieldStyle(.roundedBorder).font(.system(.body, design: .monospaced))
-                    .accessibilityLabel("Start command")
-            }
+            Divider()
+            Text("Start command").font(.headline)
+            Text("Terminal runs this command in a new shell after the selected server stops. Shared ports require an explicit bind to the selected address.")
+                .foregroundStyle(.secondary)
+            Text("cd -- " + quote(row.directory ?? "")).foregroundStyle(terminalGreen).font(.system(.caption, design: .monospaced))
+                .textSelection(.enabled)
+            TextField("Enter the server’s launch command", text: Binding(get: { command }, set: { edited = true; command = $0 }))
+                .textFieldStyle(.roundedBorder).font(.system(.body, design: .monospaced))
+                .accessibilityLabel("Start command")
             HStack {
                 Spacer()
                 Button("Cancel", action: cancel).keyboardShortcut(.cancelAction)
-                Button(selection.action.rawValue, systemImage: selection.action.symbol) { run(command) }
+                Button("Restart", systemImage: "arrow.counterclockwise") { run(command) }
                     .labelStyle(.titleAndIcon)
-                    .buttonStyle(ServerActionStyle(action: selection.action))
+                    .buttonStyle(RestartButtonStyle())
                     .keyboardShortcut(.return, modifiers: .command)
-                    .disabled(selection.action == .restart && command.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(command.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .task(id: selection.id) {
-            guard selection.action == .restart else { return }
             let suggestion = await Task.detached { restartSuggestion(row) }.value
             if !Task.isCancelled && !edited { command = suggestion }
         }

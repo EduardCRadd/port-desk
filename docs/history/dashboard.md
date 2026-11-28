@@ -6,6 +6,10 @@ Read this before touching: [Dashboard guide](../dashboard.md), [presentation and
 
 Keywords: menu bar, disclosure, compact row, polling, accessibility, command history
 
+## 2026-11-28 — Keep single-server stop controls in the port row
+
+The Stop review used to replace the list. The selected row now keeps its metrics and chevron while offering graceful Kill, immediate Force and cancel. Both signals use the captured listener identity and endpoint checks. The original terminal menu bar symbol is back beside the server count. The [dashboard fixture](../../Tests/DashboardChecks.swift) checks the one-row confirmation geometry and exercises cancellation and Force on a disposable listener.
+
 ## 2026-11-27 — Show one row per port and add dashboard settings
 
 The former fixed dashboard grouped all ports under a PID and exposed Restart beside every development row. The panel now follows the reference’s per-port layout, with a full process snapshot behind each row. Expanding a port shows its process details. Hover exposes browser, Terminal and reviewed Stop actions. Restart and the session history moved to the contextual menu. Control-Return opens the same actions for a keyboard selection.

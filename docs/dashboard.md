@@ -8,9 +8,11 @@ Keywords: menu bar, MenuBarExtra, panel, disclosure, pollTask, port links, keybo
 
 ## Using the panel
 
-Click the plug and server count in the menu bar, or use the global shortcut. The blue port opens the selected development preview in the default browser. Show all includes other listeners as read-only rows. The badge and Kill all count development processes even when a process has several port rows.
+Click the terminal icon and server count in the menu bar, or use the global shortcut. The blue port opens the selected development preview in the default browser. Show all includes other listeners as read-only rows. The badge and Kill all count development processes even when a process has several port rows.
 
 Click a row or its chevron for PID, command, directory, port, uptime, CPU, memory and estimated energy. Hover over a development row to open its preview, reveal the original Terminal tab or review stopping the process. Terminal attribution requires a verifiable controlling terminal and ancestry. Unknown sessions cannot be revealed. The preview context menu on the row offers the alternate HTTP scheme.
+
+Click the row’s stop icon or press K to reveal **Kill**, **Force** and **×** beside its metrics. Kill (Command-Return) asks the process to quit. Force ends it immediately. Both affect every port owned by that server. Click ×, press Escape or close the panel to cancel.
 
 Right-click a row, or select it with the arrow keys and press Control-Return, for Command History or a development server for Restart. When the list is empty, its message also offers Command History in the contextual menu. History keeps the most recent 120 entries and can be copied. Restart lets you review or edit a launch command. Escape cancels an action review. Command-Return confirms it. Kill all presents the captured targets and all their ports. Confirmed actions continue after dismissal. The result identifies any remaining listener, a partial restart or an individual failure.
 
@@ -24,7 +26,7 @@ MenuController anchors an AppKit panel below its status item. SwiftUI owns the r
 2. Use disposable servers to verify a shared-port stop, bulk review, Terminal matching and an unknown session. Repeat browser and terminal opening with both dismissal settings. See [listener verification](listeners.md#verification).
 3. Compare both lists, each inspector, row highlights, help text and the three settings tabs against the reference states below. Verify the recording control, shortcut conflict feedback, settings persistence and the version displayed from the bundle.
 4. Check the panel at increased contrast and reduced transparency. Use a dedicated accessibility session for spoken VoiceOver feedback.
-5. Run `./scripts/check-dashboard.sh /tmp/port-desk-captures` from the checkout for ten fixture captures and the controlled polling checks. Images use synthetic server names, deterministic resource samples and native controls. Native tooltip timing and the desktop material need a windowed check.
+5. Run `./scripts/check-dashboard.sh /tmp/port-desk-captures` from the checkout for eleven fixture captures and the controlled polling checks. Images use synthetic server names, deterministic resource samples and native controls. Native tooltip timing and the desktop material need a windowed check.
 
 ## Reference layout
 

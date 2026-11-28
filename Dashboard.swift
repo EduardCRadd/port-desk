@@ -32,7 +32,7 @@ struct Dashboard: View {
     var body: some View {
         Group {
             if let review {
-                Review(selection: review, cancel: { self.review = nil }) { command in
+                RestartReview(selection: review, cancel: { self.review = nil }) { command in
                     self.review = nil
                     Task { await desk.perform(review, command: command) }
                 }.id(review.id).padding().frame(height: 300)
@@ -103,13 +103,16 @@ struct Dashboard: View {
                             Text(desk.loaded ? "No listening servers" : "Reading ports…")
                                 .foregroundStyle(.secondary).frame(maxWidth: .infinity).frame(height: 48)
                                 .contentShape(Rectangle()).contextMenu {
-                                    Button("Command History") { history = true }
+                                    Button("Command History") { desk.cancelStop(); history = true }
                                 }
                         }
                         ForEach(displayed) { item in portLine(item).id(item.id) }
                     }
                 }
-                .onChange(of: selection) { _, id in if let id { proxy.scrollTo(id) } }
+                .onChange(of: selection) { _, id in
+                    if let pending = desk.pendingStop, pending.id != id { desk.cancelStop() }
+                    if let id { proxy.scrollTo(id) }
+                }
             }.frame(height: CGFloat(listHeight))
             .focusable().focused($listFocused).focusEffectDisabled()
             .onKeyPress(.upArrow) { move(-1); return .handled }
@@ -121,7 +124,7 @@ struct Dashboard: View {
             }
             .onKeyPress("o") { selectedAction { open($0) } }
             .onKeyPress("t") { selectedAction { terminal($0.listener) } }
-            .onKeyPress("k") { selectedAction { confirm(.stop, $0.listener) } }
+            .onKeyPress("k") { selectedAction { armStop($0) } }
             if !desk.actionMessage.isEmpty {
                 ScrollView { Text(desk.actionMessage).font(.caption).textSelection(.enabled) }.frame(maxHeight: 56)
             }
@@ -135,6 +138,7 @@ struct Dashboard: View {
                 Spacer()
                 let eligible = desk.rows.filter(\.manageable)
                 Button("Kill all (" + String(eligible.count) + ")", systemImage: "xmark.octagon") {
+                    desk.cancelStop()
                     bulk = eligible
                 }.disabled(eligible.isEmpty || desk.busy)
                 Button("Quit") { NSApp.terminate(nil) }.disabled(desk.busy).keyboardShortcut("q")
@@ -145,6 +149,7 @@ struct Dashboard: View {
     private func portLine(_ item: PortRow) -> some View {
         let row = item.listener
         let metrics = desk.metrics[row.id] ?? ProcessMetrics()
+        let pending = desk.pendingStop.flatMap { $0.id == item.id ? $0 : nil }
         let active = keyboardNavigating ? selection == item.id : hovered == item.id
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
@@ -163,11 +168,13 @@ struct Dashboard: View {
                             .foregroundStyle(metrics.energy == "Low" ? Color.green : Color.secondary)
                     }.labelStyle(.titleAndIcon).font(.caption).foregroundStyle(.secondary)
                 }.frame(maxWidth: .infinity, alignment: .leading)
-                if active && row.manageable {
+                if let pending {
+                    inlineStop(pending)
+                } else if active && row.manageable {
                     icon("arrow.up.right.square", "Open " + (url(item)?.absoluteString ?? item.title)) { open(item) }
                     icon("terminal", "Open the Terminal tab running this app") { terminal(row) }
                         .disabled(row.terminal == nil)
-                    icon("xmark.octagon", "Kill this process") { confirm(.stop, row) }.disabled(desk.busy)
+                    icon("xmark.octagon", "Kill this process") { armStop(item) }.disabled(desk.busy)
                 }
                 icon(expanded == item.id ? "chevron.down" : "chevron.right", "Details for \(item.title), PID \(row.id)") {
                     toggle(item)
@@ -189,7 +196,7 @@ struct Dashboard: View {
 
     @ViewBuilder private func rowActions(_ item: PortRow) -> some View {
         if item.listener.manageable {
-            Button("Restart…") { menuRow = nil; confirm(.restart, item.listener) }.disabled(desk.busy)
+            Button("Restart…") { menuRow = nil; desk.cancelStop(); review = Selection(row: item.listener, action: .restart) }.disabled(desk.busy)
             if let alternate = url(item, alternate: true) {
                 Button("Open with " + (alternate.scheme?.uppercased() ?? "")) {
                     menuRow = nil
@@ -197,14 +204,14 @@ struct Dashboard: View {
                 }
             }
         }
-        Button("Command History") { menuRow = nil; history = true }
+        Button("Command History") { menuRow = nil; desk.cancelStop(); history = true }
     }
 
     private func metric(_ value: String, _ symbol: String) -> some View {
         HStack(spacing: 2) {
             Image(systemName: symbol)
-            Text(value)
-        }.fixedSize()
+            Text(value).truncationMode(.tail)
+        }.lineLimit(1)
     }
 
     private func icon(_ symbol: String, _ label: String, action: @escaping () -> Void) -> some View {
@@ -239,7 +246,9 @@ struct Dashboard: View {
 
     private func uptime(_ row: Listener) -> String {
         guard let start = row.fingerprint?.seconds else { return "—" }
-        let minutes = max(0, Int(Date().timeIntervalSince1970 - Double(start)) / 60)
+        let seconds = max(0, Int(Date().timeIntervalSince1970 - Double(start)))
+        if seconds < 60 { return "\(seconds)s" }
+        let minutes = seconds / 60
         if minutes >= 1440 { return "\(minutes / 1440)d \(minutes / 60 % 24)h" }
         return minutes >= 60 ? "\(minutes / 60)h \(minutes % 60)m" : "\(minutes)m"
     }
@@ -281,9 +290,43 @@ struct Dashboard: View {
         }
     }
 
-    private func confirm(_ action: Action, _ row: Listener) {
-        guard row.manageable, !desk.busy else { return }
-        review = Selection(row: row, action: action)
+    private func armStop(_ item: PortRow) {
+        guard item.listener.manageable, !desk.busy else { return }
+        selection = item.id
+        desk.reviewStop(item)
+        listFocused = true
+    }
+
+    private func inlineStop(_ item: PortRow) -> some View {
+        let target = "\(item.title), PID \(item.listener.id), ports \(item.listener.portText)"
+        return HStack(spacing: 6) {
+            Button {
+                submitStop(.stop, item)
+            } label: {
+                Text("Kill").frame(width: 36, height: 20)
+                    .background(.red, in: RoundedRectangle(cornerRadius: 5))
+            }
+            .keyboardShortcut(.return, modifiers: .command)
+            .help("Stop " + target + " (SIGTERM)")
+            .accessibilityLabel("Stop " + target)
+            Button {
+                submitStop(.forceStop, item)
+            } label: {
+                Text("Force").frame(width: 50, height: 20)
+                    .background(.secondary.opacity(0.22), in: RoundedRectangle(cornerRadius: 5))
+            }
+            .help("Force quit " + target + " immediately (SIGKILL)")
+            .accessibilityLabel("Force quit " + target + " immediately")
+            Button { desk.cancelStop() } label: {
+                Image(systemName: "xmark").frame(width: 14, height: 22)
+            }
+            .keyboardShortcut(.cancelAction)
+            .help("Cancel").accessibilityLabel("Cancel stopping " + item.title)
+        }.font(.system(size: 11, weight: .semibold)).fixedSize().disabled(desk.busy)
+    }
+
+    private func submitStop(_ action: Action, _ item: PortRow) {
+        Task { await desk.confirmStop(action, for: item.id) }
     }
 
     private var historyView: some View {

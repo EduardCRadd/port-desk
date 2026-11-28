@@ -21,7 +21,7 @@ private final class PortsPanel: NSPanel {
         NSApp.setActivationPolicy(.accessory)
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         let button = item.button
-        button?.image = NSImage(systemSymbolName: "powerplug.fill", accessibilityDescription: "Port Desk")
+        button?.image = NSImage(systemSymbolName: "terminal", accessibilityDescription: "Port Desk")
         button?.imagePosition = .imageLeading
         button?.target = self
         button?.action = #selector(togglePanel)
